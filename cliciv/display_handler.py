@@ -1,4 +1,4 @@
-from thespian.actors import Actor
+from thespian.actors import Actor, ActorExitRequest
 
 from cliciv.game_data import GameData
 from cliciv.messages import DisplayStart, DisplaySetup, ResourcesRegisterForUpdates, ResourcesNewState, \
@@ -10,11 +10,14 @@ class DisplayHandler(Actor):
         self.resources_manager: str = None
         self.technology_manager: str = None
         self.game_data: GameData = GameData()
+        super(DisplayHandler, self).__init__()
 
     def receiveMessage(self, msg, sender: Actor):
-        if isinstance(msg, DisplaySetup):
+        if isinstance(msg, ActorExitRequest):
+            pass
+        elif isinstance(msg, DisplaySetup):
             self.resources_manager = msg.resource_manager
-            self.technology_manager = msg.tech_manager
+            self.technology_manager = msg.technology_manager
         elif isinstance(msg, DisplayStart):
             self.start()
         elif isinstance(msg, ResourcesNewState):
@@ -28,6 +31,7 @@ class DisplayHandler(Actor):
             self.show_state()
 
     def show_state(self) -> None:
+        print("=============================")
         print("Population ({}/{}):".format(self.game_data.total_population, self.game_data.popcap))
         for occupation, num in self.game_data.visible_occupations.items():
             print("{}: {}".format(occupation, num))
