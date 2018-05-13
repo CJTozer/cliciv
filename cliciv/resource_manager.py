@@ -1,6 +1,9 @@
 from typing import Dict
 
 class ResourceManager(object):
+    def __init__(self):
+        self.population = []
+
     @property
     def occupations(self) -> Dict[str, int]:
         return {
@@ -18,4 +21,3 @@ class ResourceManager(object):
             "wood": 2.6,
             "stone": 0.0,
         }
-
