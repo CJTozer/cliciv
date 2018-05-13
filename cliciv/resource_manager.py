@@ -1,21 +1,34 @@
-from typing import Dict
+from typing import List
 
-class ResourceManager(object):
+from thespian.actors import Actor, ActorAddress
+
+from cliciv.messages import ResourcesRegisterForUpdates, ResourcesMessage, ResourcesNewState
+
+
+class ResourceManager(Actor):
     def __init__(self):
-        self.population = []
+        self.registered: List[str] = []
+        self.resource_state = ResourceState()
 
-    @property
-    def occupations(self) -> Dict[str, int]:
-        return {
+    def receiveMessage(self, msg: ResourcesMessage, sender: str):
+        if isinstance(msg, ResourcesRegisterForUpdates):
+            # `ActorAddress` can't be hashed, so can't just use set() here
+            if sender not in self.registered:
+                self.registered.append(sender)
+            self.send(sender, ResourcesNewState(self.resource_state))
+        else:
+            self.logger().error("Ignoring unexpected message: {}".format(msg))
+
+
+class ResourceState(object):
+    def __init__(self):
+        self.occupations = {
             "gatherer": 2,
             "idle": 3,
             "builder": 0,
             "woodcutter": 1,
         }
-
-    @property
-    def resources(self) -> Dict[str, float]:
-        return {
+        self.resources = {
             "food": 1.0,
             "water": 2.0,
             "wood": 2.6,

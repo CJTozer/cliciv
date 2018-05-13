@@ -1,28 +1,56 @@
 from collections import OrderedDict
 from typing import Dict
 
-from cliciv.TechnologyManager import TechnologyManager
+from cliciv.technology_manager import TechnologyManager
 from cliciv.resource_manager import ResourceManager
 
 
+class Resources(object):
+    @property
+    def materials():
+        return {
+            "food": 1.0,
+            "water": 2.0,
+            "wood": 2.6,
+            "stone": 0.0,
+        }
+
+
+class Technology(object):
+    @property
+    def unlocked_materials():
+        return ["food", "wood"]
+
+    @property
+    def unlocked_occupations():
+        return ["idle", "gatherer", "builder"]
+
+
 class GameData(object):
-    def __init__(self):
-        self.resource_manager = ResourceManager()
-        self.tech_manager = TechnologyManager()
+    def __init__(self, resources: Resources =None, tech: Technology = None):
+        self.resources = resources
+        self.tech = tech
+
+    @property
+    def is_complete(self):
+        return all([
+            self.resources is not None,
+            self.tech is not None,
+        ])
 
     @property
     def visible_resources(self) -> Dict[str, float]:
         # Maintain ordering from `unlocked_resources`
         return OrderedDict([
-            (k, self.resource_manager.resources.get(k, 0.0))
-            for k in self.tech_manager.unlocked_resources
+            (k, self.resources.materials.get(k, 0.0))
+            for k in self.tech.unlocked_materials
         ])
 
     @property
     def visible_occupations(self) -> Dict[str, int]:
         return OrderedDict([
-            (k, self.resource_manager.occupations.get(k, 0))
-            for k in self.tech_manager.unlocked_occupations
+            (k, self.resources.occupations.get(k, 0))
+            for k in self.tech.unlocked_occupations
         ])
 
     @property
