@@ -3,8 +3,7 @@ from thespian.actors import ActorSystem, ActorExitRequest, Actor
 from cliciv.technology_manager import TechnologyManager
 from cliciv.command_handler import CommandHandler
 from cliciv.display_handler import DisplayHandler
-from cliciv.messages import DisplayStart, CoordinatorMessage, CoordinatorGetResourcesmanager, \
-    DisplaySetup
+from cliciv.messages import DisplayStart, DisplaySetup
 from cliciv.resource_manager import ResourceManager
 
 

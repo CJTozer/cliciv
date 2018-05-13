@@ -1,8 +1,8 @@
 from typing import List
 
-from thespian.actors import Actor, ActorAddress
+from thespian.actors import Actor
 
-from cliciv.messages import ResourcesRegisterForUpdates, ResourcesMessage, ResourcesNewState
+from cliciv.messages import ResourcesRegisterForUpdates, ResourcesNewState
 
 
 class ResourceManager(Actor):
@@ -10,7 +10,7 @@ class ResourceManager(Actor):
         self.registered: List[str] = []
         self.resource_state = ResourceState()
 
-    def receiveMessage(self, msg: ResourcesMessage, sender: str):
+    def receiveMessage(self, msg, sender: str):
         if isinstance(msg, ResourcesRegisterForUpdates):
             # `ActorAddress` can't be hashed, so can't just use set() here
             if sender not in self.registered:
@@ -28,7 +28,7 @@ class ResourceState(object):
             "builder": 0,
             "woodcutter": 1,
         }
-        self.resources = {
+        self.materials = {
             "food": 1.0,
             "water": 2.0,
             "wood": 2.6,

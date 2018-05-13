@@ -29,13 +29,13 @@ class Technology(object):
 class GameData(object):
     def __init__(self, resources: Resources =None, tech: Technology = None):
         self.resources = resources
-        self.tech = tech
+        self.technology = tech
 
     @property
     def is_complete(self):
         return all([
             self.resources is not None,
-            self.tech is not None,
+            self.technology is not None,
         ])
 
     @property
@@ -43,14 +43,14 @@ class GameData(object):
         # Maintain ordering from `unlocked_resources`
         return OrderedDict([
             (k, self.resources.materials.get(k, 0.0))
-            for k in self.tech.unlocked_materials
+            for k in self.technology.unlocked_materials
         ])
 
     @property
     def visible_occupations(self) -> Dict[str, int]:
         return OrderedDict([
             (k, self.resources.occupations.get(k, 0))
-            for k in self.tech.unlocked_occupations
+            for k in self.technology.unlocked_occupations
         ])
 
     @property

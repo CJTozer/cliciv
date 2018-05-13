@@ -17,21 +17,16 @@ class DisplayStart(ActorMessage):
     pass
 
 
-class CoordinatorMessage(ActorMessage):
-    pass
-
-
-class CoordinatorGetResourcesmanager(ActorMessage):
-    pass
-
-
-class ResourcesMessage(ActorMessage):
-    pass
-
-
 class ResourcesRegisterForUpdates(ActorMessage):
     pass
 
 class ResourcesNewState(ActorMessage):
+    def __init__(self, new_state):
+        self.new_state = new_state
+
+class TechnologyRegisterForUpdates(ActorMessage):
+    pass
+
+class TechnologyNewState(ActorMessage):
     def __init__(self, new_state):
         self.new_state = new_state
