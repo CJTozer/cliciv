@@ -1,8 +1,8 @@
 from typing import Dict
 
-from thespian.actors import Actor, ActorExitRequest
+from thespian.actors import Actor, ActorExitRequest, WakeupMessage
 
-from cliciv.messages import ResourcesRequest, WorkerStart, ResourcesRequestGranted, WorkerSetup
+from cliciv.messages import ResourcesRequest, WorkerStart, ResourcesRequestGranted, WorkerSetup, ResourcesRequestDenied
 
 
 class WorkerFactory():
@@ -36,16 +36,19 @@ class Worker(Actor):
         super(Worker, self).__init__()
     
     def receiveMessage(self, msg, sender):
-        self.logger().warn("{}/{}".format(msg, self))
+        self.logger().info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
         elif isinstance(msg, WorkerSetup):
             self.resources_manager = msg.resource_manager
             self.technology_manager = msg.technology_manager
-        elif isinstance(msg, WorkerStart):
+        elif isinstance(msg, WorkerStart) or isinstance(msg, WakeupMessage):
             self.start_work()
         elif isinstance(msg, ResourcesRequestGranted):
             self.produce_output()
+            self.wakeupAfter(1)
+        elif isinstance(msg, ResourcesRequestDenied):
+            self.logger().warn("Worker {} request for resources denied".format(self))
             self.wakeupAfter(1)
         else:
             self.logger().error("Ignoring unexpected message: {}".format(msg))

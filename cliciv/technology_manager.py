@@ -12,7 +12,7 @@ class TechnologyManager(Actor):
         super(TechnologyManager, self).__init__()
 
     def receiveMessage(self, msg, sender: str):
-        self.logger().warn("{}/{}".format(msg, self))
+        self.logger().info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
         elif isinstance(msg, TechnologyRegisterForUpdates):

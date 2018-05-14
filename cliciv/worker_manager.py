@@ -3,8 +3,8 @@ from typing import List, Dict
 from thespian.actors import Actor, ActorExitRequest
 
 from cliciv.messages import WorkerManagerSetup, WorkersRegisterForUpdates, WorkersNewState, WorkersStart, WorkerStart, \
-    WorkerSetup
-from cliciv.worker import Worker, WorkerFactory
+    WorkerSetup, TechnologyRegisterForUpdates, TechnologyNewState
+from cliciv.worker import WorkerFactory
 
 
 class WorkerManager(Actor):
@@ -12,13 +12,14 @@ class WorkerManager(Actor):
         self.registered = []
         self.resources_manager: str = None
         self.technology_manager: str = None
+        self.technology_state = None
         self.worker_state = WorkerState()
         self.worker_factory = None
         self.workers: Dict[str, List[Actor]] = {}
         super(WorkerManager, self).__init__()
 
     def receiveMessage(self, msg, sender: str):
-        self.logger().warn("{}/{}".format(msg, self))
+        self.logger().info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             self.stop_workers()
         elif isinstance(msg, WorkerManagerSetup):
@@ -29,6 +30,8 @@ class WorkerManager(Actor):
                 self.worker_state.occupations
             )
             self.setup_workers()
+            # Register for tech updates
+            self.send(self.technology_manager, TechnologyRegisterForUpdates())
         elif isinstance(msg, WorkersStart):
             self.start_workers()
         elif isinstance(msg, WorkersRegisterForUpdates):
@@ -36,6 +39,8 @@ class WorkerManager(Actor):
             if sender not in self.registered:
                 self.registered.append(sender)
             self.send(sender, WorkersNewState(self.worker_state))
+        elif isinstance(msg, TechnologyNewState):
+            self.technology_state = msg.new_state
         else:
             self.logger().error("Ignoring unexpected message: {}".format(msg))
 
