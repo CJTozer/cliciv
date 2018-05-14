@@ -1,7 +1,8 @@
 from thespian.actors import Actor, ActorExitRequest
 
 from cliciv.game_data import GameData
-from cliciv.messages import ResourcesNewState, TechnologyNewState, WorkersNewState, Start, RegisterForUpdates
+from cliciv.messages import ResourcesNewState, TechnologyNewState, WorkersNewState, Start, RegisterForUpdates, \
+    DisplayUpdate
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager
 from cliciv.worker_manager import WorkerManager
@@ -21,6 +22,12 @@ class DisplayHandler(Actor):
             pass
         elif isinstance(msg, Start):
             self.start()
+        elif isinstance(msg, DisplayUpdate):
+            if self.game_data.is_complete:
+                self.show_state()
+            else:
+                self.logger().warn("Received DisplayUpdate before game state is complete")
+
         elif isinstance(msg, ResourcesNewState):
             self.game_data.resources = msg.new_state
         elif isinstance(msg, TechnologyNewState):
@@ -30,8 +37,6 @@ class DisplayHandler(Actor):
         else:
             self.logger().error("Ignoring unexpected message: {}".format(msg))
 
-        if self.game_data.is_complete:
-            self.show_state()
 
     def show_state(self) -> None:
         print("=============================")

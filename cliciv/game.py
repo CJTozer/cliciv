@@ -5,7 +5,7 @@ from thespian.actors import ActorSystem, ActorExitRequest, Actor
 
 from cliciv.command_handler import CommandHandler
 from cliciv.display_handler import DisplayHandler
-from cliciv.messages import Start
+from cliciv.messages import Start, DisplayUpdate
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager
 from cliciv.worker_manager import WorkerManager
@@ -17,7 +17,9 @@ class Game(object):
 
     def play(self):
         self.coordinator.start_game()
-        time.sleep(5)
+        for _ in range(100):
+            self.coordinator.update_display()
+            time.sleep(0.1)
         self.coordinator.end_game()
 
 
@@ -60,3 +62,6 @@ class Coordinator():
                 }
             }
         }
+
+    def update_display(self):
+        self.actor_system.tell(self.display_handler, DisplayUpdate())

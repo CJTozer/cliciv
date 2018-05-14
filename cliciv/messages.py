@@ -10,6 +10,10 @@ class Start(ActorMessage):
     pass
 
 
+class DisplayUpdate(ActorMessage):
+    pass
+
+
 class RegisterForUpdates(ActorMessage):
     pass
 
