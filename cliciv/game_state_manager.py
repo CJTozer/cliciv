@@ -1,7 +1,8 @@
 from thespian.actors import Actor, ActorExitRequest
 
 from cliciv.game_data import GameData
-from cliciv.messages import ResourcesNewState, TechnologyNewState, WorkersNewState, Start, RegisterForUpdates
+from cliciv.messages import ResourcesNewState, TechnologyNewState, WorkersNewState, Start, RegisterForUpdates, \
+    GameStateRequest, GameStateUnavailable
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager
 from cliciv.worker_manager import WorkerManager
@@ -27,6 +28,11 @@ class GameStateManager(Actor):
             self.game_data.technology = msg.new_state
         elif isinstance(msg, WorkersNewState):
             self.game_data.workers = msg.new_state
+        elif isinstance(msg, GameStateRequest):
+            if self.game_data.is_complete:
+                self.send(sender, self.game_data)
+            else:
+                self.send(sender, GameStateUnavailable())
         else:
             self.logger().error("Ignoring unexpected message: {}".format(msg))
 

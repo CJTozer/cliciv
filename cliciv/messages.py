@@ -45,3 +45,11 @@ class TechnologyNewState(ActorMessage):
 class WorkersNewState(ActorMessage):
     def __init__(self, new_state):
         self.new_state = new_state
+
+
+class GameStateRequest(ActorMessage):
+    pass
+
+
+class GameStateUnavailable(ActorMessage):
+    pass
