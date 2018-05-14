@@ -2,7 +2,7 @@ from typing import Dict
 
 from thespian.actors import Actor, ActorExitRequest, WakeupMessage
 
-from cliciv.messages import ResourcesRequest, Start, ResourcesRequestGranted, ResourcesRequestDenied
+from cliciv.messages import ResourcesRequest, Start, ResourcesRequestGranted, ResourcesRequestDenied, ResourcesProduced
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager
 
@@ -24,11 +24,11 @@ class WorkerFactory():
         ]
 
     def of_type(self, occupation: str):
-        # mapping = {
-        #     'idle': IdleWorker
-        # }
-        # return mapping.get(occupation)
-        return self.worker_manager.createActor(IdleWorker)
+        mapping = {
+            'idle': Idler,
+            'gatherer': Gatherer
+        }
+        return self.worker_manager.createActor(mapping.get(occupation))
 
 
 class Worker(Actor):
@@ -61,7 +61,7 @@ class Worker(Actor):
         raise NotImplementedError("Worker subclass must define produce_output")
 
 
-class IdleWorker(Worker):
+class Idler(Worker):
     def start_work(self):
         # Idle - only needs a small amount of food
         req = {'food': 0.5}
@@ -70,3 +70,15 @@ class IdleWorker(Worker):
     def produce_output(self):
         # Idleness creates nothing
         pass
+
+
+class Gatherer(Worker):
+    def start_work(self):
+        # Gatherer - requires full rations
+        req = {'food': 1.0}
+        self.send(self.resources_manager, ResourcesRequest(req))
+
+    def produce_output(self):
+        # Gather 1.25 food per day
+        produced = {'food': 1.25}
+        self.send(self.resources_manager, ResourcesProduced(produced))

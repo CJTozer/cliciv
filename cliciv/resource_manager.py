@@ -3,7 +3,7 @@ from typing import List, Dict
 from thespian.actors import Actor, ActorExitRequest
 
 from cliciv.messages import ResourcesNewState, ResourcesRequest, ResourcesRequestGranted, ResourcesRequestDenied, \
-    RegisterForUpdates
+    RegisterForUpdates, ResourcesProduced
 
 
 class ResourceManager(Actor):
@@ -27,6 +27,9 @@ class ResourceManager(Actor):
                 self.notify_all()
             else:
                 self.send(sender, ResourcesRequestDenied())
+        elif isinstance(msg, ResourcesProduced):
+            self.resource_state.store(msg.produced)
+            self.notify_all()
         else:
             self.logger().error("Ignoring unexpected message: {}".format(msg))
 
@@ -38,7 +41,7 @@ class ResourceManager(Actor):
 class ResourceState(object):
     def __init__(self):
         self.materials = {
-            "food": 2.0,
+            "food": 5.0,
             "water": 2.0,
             "wood": 2.6,
             "stone": 0.0,
@@ -53,3 +56,7 @@ class ResourceState(object):
                 self.materials[material] -= amount
                 return True
         return False
+
+    def store(self, resources: Dict[str, float]):
+        for material, amount in resources.items():
+            self.materials[material] = self.materials.get(material, 0.0) + amount

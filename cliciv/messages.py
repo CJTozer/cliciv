@@ -10,10 +10,6 @@ class Start(ActorMessage):
     pass
 
 
-class DisplayUpdate(ActorMessage):
-    pass
-
-
 class RegisterForUpdates(ActorMessage):
     pass
 
@@ -34,6 +30,11 @@ class ResourcesRequestDenied(ActorMessage):
 class ResourcesNewState(ActorMessage):
     def __init__(self, new_state):
         self.new_state = new_state
+
+
+class ResourcesProduced(ActorMessage):
+    def __init__(self, resources):
+        self.produced = resources
 
 
 class TechnologyNewState(ActorMessage):

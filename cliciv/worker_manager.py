@@ -63,8 +63,8 @@ class WorkerManager(Actor):
 class WorkerState(object):
     def __init__(self):
         self.occupations = {
-            "gatherer": 0,
             "idle": 1,
+            "gatherer": 3,
             "builder": 0,
             "woodcutter": 0,
         }
