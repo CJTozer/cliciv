@@ -1,8 +1,8 @@
 from typing import List
 
-from thespian.actors import Actor, WakeupMessage, ActorExitRequest
+from thespian.actors import Actor, ActorExitRequest
 
-from cliciv.messages import TechnologyRegisterForUpdates, TechnologyNewState
+from cliciv.messages import RegisterForUpdates, TechnologyNewState
 
 
 class TechnologyManager(Actor):
@@ -15,7 +15,7 @@ class TechnologyManager(Actor):
         self.logger().info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
-        elif isinstance(msg, TechnologyRegisterForUpdates):
+        elif isinstance(msg, RegisterForUpdates):
             # `ActorAddress` can't be hashed, so can't just use set() here
             if sender not in self.registered:
                 self.registered.append(sender)

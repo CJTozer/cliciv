@@ -1,27 +1,25 @@
 from thespian.actors import Actor, ActorExitRequest
 
 from cliciv.game_data import GameData
-from cliciv.messages import DisplayStart, DisplaySetup, ResourcesRegisterForUpdates, ResourcesNewState, \
-    TechnologyRegisterForUpdates, TechnologyNewState, WorkersNewState, WorkersRegisterForUpdates
+from cliciv.messages import ResourcesNewState, TechnologyNewState, WorkersNewState, Start, RegisterForUpdates
+from cliciv.resource_manager import ResourceManager
+from cliciv.technology_manager import TechnologyManager
+from cliciv.worker_manager import WorkerManager
 
 
 class DisplayHandler(Actor):
     def __init__(self):
-        self.resources_manager: str = None
-        self.technology_manager: str = None
-        self.worker_manager: str = None
+        self.resources_manager: Actor = None
+        self.technology_manager: Actor = None
+        self.worker_manager: Actor = None
         self.game_data: GameData = GameData()
         super(DisplayHandler, self).__init__()
 
     def receiveMessage(self, msg, sender: Actor):
-        self.logger().warn("{}/{}".format(msg, self))
+        self.logger().info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
-        elif isinstance(msg, DisplaySetup):
-            self.resources_manager = msg.resource_manager
-            self.technology_manager = msg.technology_manager
-            self.worker_manager = msg.worker_manager
-        elif isinstance(msg, DisplayStart):
+        elif isinstance(msg, Start):
             self.start()
         elif isinstance(msg, ResourcesNewState):
             self.game_data.resources = msg.new_state
@@ -46,6 +44,10 @@ class DisplayHandler(Actor):
             print("{}: {}".format(resource, amount))
 
     def start(self):
-        self.send(self.resources_manager, ResourcesRegisterForUpdates())
-        self.send(self.technology_manager, TechnologyRegisterForUpdates())
-        self.send(self.worker_manager, WorkersRegisterForUpdates())
+        self.resources_manager = self.createActor(ResourceManager, globalName="resource_manager")
+        self.technology_manager = self.createActor(TechnologyManager, globalName="technology_manager")
+        self.worker_manager = self.createActor(WorkerManager, globalName="worker_manager")
+
+        self.send(self.resources_manager, RegisterForUpdates())
+        self.send(self.technology_manager, RegisterForUpdates())
+        self.send(self.worker_manager, RegisterForUpdates())

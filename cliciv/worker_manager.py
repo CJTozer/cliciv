@@ -2,16 +2,17 @@ from typing import List, Dict
 
 from thespian.actors import Actor, ActorExitRequest
 
-from cliciv.messages import WorkerManagerSetup, WorkersRegisterForUpdates, WorkersNewState, WorkersStart, WorkerStart, \
-    WorkerSetup, TechnologyRegisterForUpdates, TechnologyNewState
+from cliciv.messages import WorkersNewState, TechnologyNewState, Start, RegisterForUpdates
+from cliciv.resource_manager import ResourceManager
+from cliciv.technology_manager import TechnologyManager
 from cliciv.worker import WorkerFactory
 
 
 class WorkerManager(Actor):
     def __init__(self):
         self.registered = []
-        self.resources_manager: str = None
-        self.technology_manager: str = None
+        self.resources_manager: Actor = None
+        self.technology_manager: Actor = None
         self.technology_state = None
         self.worker_state = WorkerState()
         self.worker_factory = None
@@ -22,19 +23,18 @@ class WorkerManager(Actor):
         self.logger().info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             self.stop_workers()
-        elif isinstance(msg, WorkerManagerSetup):
-            self.resources_manager = msg.resource_manager
-            self.technology_manager = msg.technology_manager
+        elif isinstance(msg, Start):
+            self.resources_manager = self.createActor(ResourceManager, globalName="resource_manager")
+            self.technology_manager = self.createActor(TechnologyManager, globalName="technology_manager")
             self.worker_factory = WorkerFactory(self)
             self.workers = self.worker_factory.from_config(
                 self.worker_state.occupations
             )
-            self.setup_workers()
             # Register for tech updates
-            self.send(self.technology_manager, TechnologyRegisterForUpdates())
-        elif isinstance(msg, WorkersStart):
+            self.send(self.technology_manager, RegisterForUpdates())
+            # Start Workers
             self.start_workers()
-        elif isinstance(msg, WorkersRegisterForUpdates):
+        elif isinstance(msg, RegisterForUpdates):
             # `ActorAddress` can't be hashed, so can't just use set() here
             if sender not in self.registered:
                 self.registered.append(sender)
@@ -51,16 +51,9 @@ class WorkerManager(Actor):
             for w in worker_list
         ]
 
-    def setup_workers(self):
-        for worker in self.workers_list():
-            self.send(worker, WorkerSetup(
-                self.resources_manager,
-                self.technology_manager
-            ))
-
     def start_workers(self):
         for worker in self.workers_list():
-            self.send(worker, WorkerStart())
+            self.send(worker, Start())
 
     def stop_workers(self):
         for worker in self.workers_list():
@@ -70,8 +63,8 @@ class WorkerManager(Actor):
 class WorkerState(object):
     def __init__(self):
         self.occupations = {
-            "gatherer": 2,
-            "idle": 3,
+            "gatherer": 0,
+            "idle": 1,
             "builder": 0,
-            "woodcutter": 1,
+            "woodcutter": 0,
         }

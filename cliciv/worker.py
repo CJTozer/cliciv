@@ -2,7 +2,9 @@ from typing import Dict
 
 from thespian.actors import Actor, ActorExitRequest, WakeupMessage
 
-from cliciv.messages import ResourcesRequest, WorkerStart, ResourcesRequestGranted, WorkerSetup, ResourcesRequestDenied
+from cliciv.messages import ResourcesRequest, Start, ResourcesRequestGranted, ResourcesRequestDenied
+from cliciv.resource_manager import ResourceManager
+from cliciv.technology_manager import TechnologyManager
 
 
 class WorkerFactory():
@@ -31,18 +33,17 @@ class WorkerFactory():
 
 class Worker(Actor):
     def __init__(self):
-        self.resources_manager = None
-        self.technology_manager = None
+        self.resources_manager: Actor = None
+        self.technology_manager: Actor = None
         super(Worker, self).__init__()
     
     def receiveMessage(self, msg, sender):
         self.logger().info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
-        elif isinstance(msg, WorkerSetup):
-            self.resources_manager = msg.resource_manager
-            self.technology_manager = msg.technology_manager
-        elif isinstance(msg, WorkerStart) or isinstance(msg, WakeupMessage):
+        elif isinstance(msg, Start) or isinstance(msg, WakeupMessage):
+            self.resources_manager = self.createActor(ResourceManager, globalName="resource_manager")
+            self.technology_manager = self.createActor(TechnologyManager, globalName="technology_manager")
             self.start_work()
         elif isinstance(msg, ResourcesRequestGranted):
             self.produce_output()

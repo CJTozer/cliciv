@@ -2,8 +2,8 @@ from typing import List, Dict
 
 from thespian.actors import Actor, ActorExitRequest
 
-from cliciv.messages import ResourcesRegisterForUpdates, ResourcesNewState, ResourcesRequest, ResourcesRequestGranted, \
-    ResourcesRequestDenied
+from cliciv.messages import ResourcesNewState, ResourcesRequest, ResourcesRequestGranted, ResourcesRequestDenied, \
+    RegisterForUpdates
 
 
 class ResourceManager(Actor):
@@ -14,10 +14,9 @@ class ResourceManager(Actor):
 
     def receiveMessage(self, msg, sender: str):
         self.logger().info("{}/{}".format(msg, self))
-
         if isinstance(msg, ActorExitRequest):
             pass
-        elif isinstance(msg, ResourcesRegisterForUpdates):
+        elif isinstance(msg, RegisterForUpdates):
             # `ActorAddress` can't be hashed, so can't just use set() here
             if sender not in self.registered:
                 self.registered.append(sender)
