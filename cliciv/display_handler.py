@@ -2,28 +2,33 @@ from thespian.actors import Actor, ActorExitRequest
 
 from cliciv.game_data import GameData
 from cliciv.messages import DisplayStart, DisplaySetup, ResourcesRegisterForUpdates, ResourcesNewState, \
-    TechnologyRegisterForUpdates, TechnologyNewState
+    TechnologyRegisterForUpdates, TechnologyNewState, WorkersNewState, WorkersRegisterForUpdates
 
 
 class DisplayHandler(Actor):
     def __init__(self):
         self.resources_manager: str = None
         self.technology_manager: str = None
+        self.worker_manager: str = None
         self.game_data: GameData = GameData()
         super(DisplayHandler, self).__init__()
 
     def receiveMessage(self, msg, sender: Actor):
+        self.logger().warn("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
         elif isinstance(msg, DisplaySetup):
             self.resources_manager = msg.resource_manager
             self.technology_manager = msg.technology_manager
+            self.worker_manager = msg.worker_manager
         elif isinstance(msg, DisplayStart):
             self.start()
         elif isinstance(msg, ResourcesNewState):
             self.game_data.resources = msg.new_state
         elif isinstance(msg, TechnologyNewState):
             self.game_data.technology = msg.new_state
+        elif isinstance(msg, WorkersNewState):
+            self.game_data.workers = msg.new_state
         else:
             self.logger().error("Ignoring unexpected message: {}".format(msg))
 
@@ -43,3 +48,4 @@ class DisplayHandler(Actor):
     def start(self):
         self.send(self.resources_manager, ResourcesRegisterForUpdates())
         self.send(self.technology_manager, TechnologyRegisterForUpdates())
+        self.send(self.worker_manager, WorkersRegisterForUpdates())
