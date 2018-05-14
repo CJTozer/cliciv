@@ -17,7 +17,7 @@ class GameStateManager(Actor):
         super(GameStateManager, self).__init__()
 
     def receiveMessage(self, msg, sender: Actor):
-        self.logger().info("{}/{}".format(msg, self))
+        # self.logger().info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
         elif isinstance(msg, Start):
@@ -33,8 +33,8 @@ class GameStateManager(Actor):
                 self.send(sender, self.game_data)
             else:
                 self.send(sender, GameStateUnavailable())
-        else:
-            self.logger().error("Ignoring unexpected message: {}".format(msg))
+        # else:
+        #     self.logger().error("Ignoring unexpected message: {}".format(msg))
 
     def start(self):
         self.resources_manager = self.createActor(ResourceManager, globalName="resource_manager")

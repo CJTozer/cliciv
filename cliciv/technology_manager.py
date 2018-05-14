@@ -12,7 +12,7 @@ class TechnologyManager(Actor):
         super(TechnologyManager, self).__init__()
 
     def receiveMessage(self, msg, sender: str):
-        self.logger().info("{}/{}".format(msg, self))
+        # self.logger().info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
         elif isinstance(msg, RegisterForUpdates):
@@ -20,8 +20,8 @@ class TechnologyManager(Actor):
             if sender not in self.registered:
                 self.registered.append(sender)
             self.send(sender, TechnologyNewState(self.technology_state))
-        else:
-            self.logger().error("Ignoring unexpected message: {}".format(msg))
+        # else:
+        #     self.logger().error("Ignoring unexpected message: {}".format(msg))
 
 
 class TechnologyState(object):

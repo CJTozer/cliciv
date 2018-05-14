@@ -1,10 +1,11 @@
 import time
 from typing import List
 
-from cliciv.display_handler import DisplayHandler
+from asciimatics.screen import Screen
 from thespian.actors import ActorSystem, ActorExitRequest, Actor
 
 from cliciv.command_handler import CommandHandler
+from cliciv.display_handler import DisplayHandler
 from cliciv.game_data import GameData
 from cliciv.game_state_manager import GameStateManager
 from cliciv.messages import Start, GameStateRequest
@@ -27,8 +28,7 @@ class Game(object):
 
 class Coordinator():
     def __init__(self):
-        # self.actor_system = ActorSystem('multiprocTCPBase')
-        self.actor_system = ActorSystem()
+        self.actor_system = ActorSystem('multiprocQueueBase')
         self.command_handler = CommandHandler()
         self.display_handler = DisplayHandler()
 
@@ -47,6 +47,16 @@ class Coordinator():
         # Start the active actors
         self.actor_system.tell(self.game_state_manager, Start())
         self.actor_system.tell(self.worker_manager, Start())
+        Screen.wrapper(self._run_game_ui)
+
+    def _run_game_ui(self, screen):
+        self.display_handler.set_screen(screen)
+        try:
+            while True:
+                self.update_display()
+                time.sleep(0.5)
+        except KeyboardInterrupt:
+            pass
 
     def end_game(self):
         for a in self.actors:

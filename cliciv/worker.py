@@ -38,7 +38,7 @@ class Worker(Actor):
         super(Worker, self).__init__()
     
     def receiveMessage(self, msg, sender):
-        self.logger().info("{}/{}".format(msg, self))
+        # self.logger().info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
         elif isinstance(msg, Start) or isinstance(msg, WakeupMessage):
@@ -49,10 +49,10 @@ class Worker(Actor):
             self.produce_output()
             self.wakeupAfter(1)
         elif isinstance(msg, ResourcesRequestDenied):
-            self.logger().warn("Worker {} request for resources denied".format(self))
+            # self.logger().warn("Worker {} request for resources denied".format(self))
             self.wakeupAfter(1)
-        else:
-            self.logger().error("Ignoring unexpected message: {}".format(msg))
+        # else:
+        #     self.logger().error("Ignoring unexpected message: {}".format(msg))
 
     def start_work(self):
         raise NotImplementedError("Worker subclass must define start_work")

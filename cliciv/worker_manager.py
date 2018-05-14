@@ -20,7 +20,7 @@ class WorkerManager(Actor):
         super(WorkerManager, self).__init__()
 
     def receiveMessage(self, msg, sender: str):
-        self.logger().info("{}/{}".format(msg, self))
+        # self.logger().info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             self.stop_workers()
         elif isinstance(msg, Start):
@@ -41,8 +41,8 @@ class WorkerManager(Actor):
             self.send(sender, WorkersNewState(self.worker_state))
         elif isinstance(msg, TechnologyNewState):
             self.technology_state = msg.new_state
-        else:
-            self.logger().error("Ignoring unexpected message: {}".format(msg))
+        # else:
+        #     self.logger().error("Ignoring unexpected message: {}".format(msg))
 
     def workers_list(self):
         return [

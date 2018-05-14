@@ -13,7 +13,7 @@ class ResourceManager(Actor):
         super(ResourceManager, self).__init__()
 
     def receiveMessage(self, msg, sender: str):
-        self.logger().info("{}/{}".format(msg, self))
+        # self.logger().info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
         elif isinstance(msg, RegisterForUpdates):
@@ -30,8 +30,8 @@ class ResourceManager(Actor):
         elif isinstance(msg, ResourcesProduced):
             self.resource_state.store(msg.produced)
             self.notify_all()
-        else:
-            self.logger().error("Ignoring unexpected message: {}".format(msg))
+        # else:
+        #     self.logger().error("Ignoring unexpected message: {}".format(msg))
 
     def notify_all(self):
         for r in self.registered:

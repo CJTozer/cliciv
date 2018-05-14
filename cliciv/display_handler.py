@@ -1,22 +1,31 @@
 class DisplayHandler(object):
+    def __init__(self):
+        self.screen = None
 
     def update_display(self, game_data) -> None:
-        print("=============================")
-        print("Population ({}/{}):".format(game_data.total_population, game_data.popcap))
+        if not self.screen:
+            return
+
+        self.screen.clear()
+
+        row = 0
+        self.screen.print_at("Population ({}/{}):".format(game_data.total_population, game_data.popcap),
+                             0, row)
+        row += 1
         for occupation, num in game_data.visible_occupations.items():
-            print("{}: {}".format(occupation, num))
+            self.screen.print_at("{}: {}".format(occupation, num),
+                                 2, row)
+            row += 1
 
-        print("\nResources:")
+        row += 1
+        self.screen.print_at("Resources:", 0, row)
+        row += 1
         for resource, amount in game_data.visible_resources.items():
-            print("{}: {}".format(resource, amount))
+            self.screen.print_at("{}: {}".format(resource, amount),
+                                 2, row)
+            row += 1
 
-# def demo(screen):
-#     screen.print_at('Hello world!', 0, 0)
-#     screen.refresh()
-#     time.sleep(5)
-#     screen.print_at('Hello world!', 5, 0)
-#     screen.refresh()
-#     time.sleep(5)
-#
-# Screen.wrapper(demo)
+        self.screen.refresh()
 
+    def set_screen(self, screen):
+        self.screen = screen
