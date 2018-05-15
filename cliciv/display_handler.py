@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from asciimatics.exceptions import ResizeScreenError
 from asciimatics.scene import Scene
 from asciimatics.screen import Screen
@@ -37,25 +39,32 @@ class MainDisplay(Frame):
 
         # Create the basic form layout...
         layout = Layout([1], fill_frame=True)
-        self._list = MultiColumnListBox(
-            Widget.FILL_FRAME,
-            ["<10", "<10"],
+
+        # ...the resources list
+        self._resources_list = MultiColumnListBox(
+            10,  # Height
+            ["<10", ">10"],
             [],
             titles=["Material", "Quantity"],
+            name="res_list")
+
+        # ...then the occupation list
+        self._occupation_list = MultiColumnListBox(
+            10, # Height
+            ["<10", ">10"],
+            [],
+            titles=["Occupation", "Number"],
             name="pop_list")
 
         self.add_layout(layout)
-        layout.add_widget(self._list)
-        layout.add_widget(
-            Label("Some help text"))
+        layout.add_widget(self._resources_list)
+        layout.add_widget(self._occupation_list)
+        layout.add_widget(Label("Some help text"))
+
         self.fix()
 
-        # Add my own colour palette
-        # self.palette = defaultdict(
-        #     lambda: (Screen.COLOUR_WHITE, Screen.A_NORMAL, Screen.COLOUR_BLACK))
-        # for key in ["selected_focus_field", "label"]:
-        #     self.palette[key] = (Screen.COLOUR_WHITE, Screen.A_BOLD, Screen.COLOUR_BLACK)
-        # self.palette["title"] = (Screen.COLOUR_BLACK, Screen.A_NORMAL, Screen.COLOUR_WHITE)
+        # Colours
+        self.palette["disabled"] = self.palette["field"]
 
     def _update(self, frame_no):
         # Refresh the list view if needed
@@ -63,36 +72,26 @@ class MainDisplay(Frame):
             self._last_frame = frame_no
 
             # Create the data to go in the multi-column list...
-            last_selection = self._list.value
-            last_start = self._list.start_line
+            last_occupation_selection = self._occupation_list.value
+            last_occupation_start_line = self._occupation_list.start_line
 
             game_data: GameData = self._new_state_callback()
-            new_data = [
-                ([resource, "{}".format(amount)], resource)
+            resource_data = [
+                ([resource, "{:.2f}".format(amount)], resource)
                 for resource, amount in game_data.visible_resources.items()
             ]
-
-            # row = 0
-            # self.screen.print_at("Population ({}/{}):".format(game_data.total_population, game_data.popcap),
-            #                      0, row)
-            # row += 1
-            # for occupation, num in game_data.visible_occupations.items():
-            #     self.screen.print_at("{}: {}".format(occupation, num),
-            #                          2, row)
-            #     row += 1
-            #
-            # row += 1
-            # self.screen.print_at("Resources:", 0, row)
-            # row += 1
-            # for resource, amount in game_data.visible_resources.items():
-            #     self.screen.print_at("{}: {}".format(resource, amount),
-            #                          2, row)
-            #     row += 1
+            occupation_data = [
+                ([occupation, "{}".format(number)], occupation)
+                for occupation, number in game_data.visible_occupations.items()
+            ]
 
             # Update the list and try to reset the last selection.
-            self._list.options = new_data
-            self._list.value = last_selection
-            self._list.start_line = last_start
+            self._resources_list.disabled = True
+            self._resources_list.options = resource_data
+
+            self._occupation_list.options = occupation_data
+            self._occupation_list.value = last_occupation_selection
+            self._occupation_list.start_line = last_occupation_start_line
 
         # Now redraw as normal
         super(MainDisplay, self)._update(frame_no)
