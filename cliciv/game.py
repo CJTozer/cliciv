@@ -20,9 +20,6 @@ class Game(object):
 
     def play(self):
         self.coordinator.start_game()
-        for _ in range(10):
-            self.coordinator.update_display()
-            time.sleep(0.5)
         self.coordinator.end_game()
 
 
@@ -30,7 +27,7 @@ class Coordinator():
     def __init__(self):
         self.actor_system = ActorSystem('multiprocQueueBase')
         self.command_handler = CommandHandler()
-        self.display_handler = DisplayHandler()
+        self.display_handler = DisplayHandler(self.get_new_game_data)
 
         self.resource_manager: Actor = self.actor_system.createActor(ResourceManager, globalName="resource_manager")
         self.technology_manager: Actor = self.actor_system.createActor(TechnologyManager, globalName="technology_manager")
@@ -47,21 +44,13 @@ class Coordinator():
         # Start the active actors
         self.actor_system.tell(self.game_state_manager, Start())
         self.actor_system.tell(self.worker_manager, Start())
-        Screen.wrapper(self._run_game_ui)
 
-    def _run_game_ui(self, screen):
-        self.display_handler.set_screen(screen)
-        try:
-            while True:
-                self.update_display()
-                time.sleep(0.5)
-        except KeyboardInterrupt:
-            pass
+        # Call into display manager - this is completely blocking
+        self.display_handler.do_display()
 
     def end_game(self):
         for a in self.actors:
             self.actor_system.tell(a, ActorExitRequest())
 
-    def update_display(self):
-        game_data: GameData = self.actor_system.ask(self.game_state_manager, GameStateRequest())
-        self.display_handler.update_display(game_data)
+    def get_new_game_data(self) -> GameData:
+        return self.actor_system.ask(self.game_state_manager, GameStateRequest())
