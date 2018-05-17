@@ -54,6 +54,12 @@ class WorkerManager(Actor):
                         remove_worker = self.workers['idle'].pop()
                         self.send(remove_worker, ActorExitRequest())
 
+                        new_worker = self.worker_factory.of_type(msg.worker_type)
+                        self.send(new_worker, Start())
+                        if msg.worker_type not in self.workers:
+                            self.workers[msg.worker_type] = []
+                        self.workers[msg.worker_type].append(new_worker)
+
                 notify_change = True
 
         # else:
