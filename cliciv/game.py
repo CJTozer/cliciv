@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 from thespian.actors import ActorSystem, ActorExitRequest, Actor
@@ -11,14 +12,29 @@ from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager
 from cliciv.worker_manager import WorkerManager
 
+logging.basicConfig(level=logging.DEBUG,
+                    filename='/tmp/cliciv-debug.log',
+                    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 
 class Game(object):
     def __init__(self):
         self.coordinator = Coordinator()
 
     def play(self):
+        self._set_up_logging()
         self.coordinator.start_game()
         self.coordinator.end_game()
+
+    def _set_up_logging(self):
+        # root_logger = logging.getLogger()
+        # fh = logging.FileHandler('spam.log')
+        # fh.setLevel(logging.DEBUG)
+        # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        # fh.setFormatter(formatter)
+        # root_logger.addHandler(fh)
+        pass
 
 
 class Coordinator():

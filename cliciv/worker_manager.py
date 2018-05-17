@@ -1,11 +1,15 @@
+import logging
 from typing import List, Dict
 
 from thespian.actors import Actor, ActorExitRequest
 
-from cliciv.messages import WorkersNewState, TechnologyNewState, Start, RegisterForUpdates, WorkerChangeRequest
+from cliciv.messages import WorkersNewState, TechnologyNewState, Start, RegisterForUpdates, WorkerChangeRequest, \
+    WorkerProfile
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager
-from cliciv.worker import WorkerFactory
+from cliciv.worker import WorkerFactory, Profiles
+
+logger = logging.getLogger(__name__)
 
 
 class WorkerManager(Actor):
@@ -20,7 +24,7 @@ class WorkerManager(Actor):
         super(WorkerManager, self).__init__()
 
     def receiveMessage(self, msg, sender: str):
-        # self.logger().info("{}/{}".format(msg, self))
+        logger.info("{}/{}".format(msg, self))
         notify_change = False
 
         if isinstance(msg, ActorExitRequest):
@@ -44,26 +48,25 @@ class WorkerManager(Actor):
         elif isinstance(msg, TechnologyNewState):
             self.technology_state = msg.new_state
         elif isinstance(msg, WorkerChangeRequest):
-            new_idle_count = len(self.workers.get('idle', [])) - msg.increment
+            new_gatherer_count = len(self.workers.get('gatherer', [])) - msg.increment
             new_type_count = len(self.workers.get(msg.worker_type, [])) + msg.increment
-            if new_idle_count >= 0 and new_type_count >= 0:
+            if new_gatherer_count >= 0 and new_type_count >= 0:
                 # The transition seems reasonable
                 if msg.increment > 0:
-                    # Move workers from idle to a new job
+                    # Move workers from gathering to a new job
                     for _ in range(msg.increment):
-                        remove_worker = self.workers['idle'].pop()
-                        self.send(remove_worker, ActorExitRequest())
-
-                        new_worker = self.worker_factory.of_type(msg.worker_type)
-                        self.send(new_worker, Start())
-                        if msg.worker_type not in self.workers:
-                            self.workers[msg.worker_type] = []
-                        self.workers[msg.worker_type].append(new_worker)
+                        worker = self.workers['gatherer'].pop()
+                        self._assign_worker(worker, msg.worker_type)
+                else:
+                    # Move workers back to gathering
+                    for _ in range(-msg.increment):
+                        worker = self.workers[msg.worker_type].pop()
+                        self._assign_worker(worker, 'gatherer')
 
                 notify_change = True
 
-        # else:
-        #     self.logger().error("Ignoring unexpected message: {}".format(msg))
+        else:
+            logger.error("Ignoring unexpected message: {}".format(msg))
 
         self.worker_state.recalculate(self.workers)
 
@@ -79,19 +82,26 @@ class WorkerManager(Actor):
         ]
 
     def start_workers(self):
-        for worker in self.workers_list():
-            self.send(worker, Start())
+        for worker_type, worker_list in self.workers.items():
+            for worker in worker_list:
+                self.send(worker, WorkerProfile(Profiles[worker_type]))
+                self.send(worker, Start())
 
     def stop_workers(self):
         for worker in self.workers_list():
             self.send(worker, ActorExitRequest())
 
+    def _assign_worker(self, worker, worker_type):
+        self.send(worker, WorkerProfile(Profiles[worker_type]))
+        if worker_type not in self.workers:
+            self.workers = []
+        self.workers[worker_type].append(worker)
+
 
 class WorkerState(object):
     def __init__(self):
         self.occupations = {
-            "idle": 1,
-            "gatherer": 3,
+            "gatherer": 5,
             "builder": 0,
             "woodcutter": 0,
         }

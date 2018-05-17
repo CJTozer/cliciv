@@ -1,3 +1,5 @@
+import logging
+
 from asciimatics.event import KeyboardEvent
 from asciimatics.exceptions import ResizeScreenError, StopApplication
 from asciimatics.scene import Scene
@@ -7,6 +9,7 @@ from asciimatics.widgets import Frame, Layout, Label, MultiColumnListBox
 from cliciv.command_handler import CommandType
 from cliciv.game_data import GameData
 
+logger = logging.getLogger(__name__)
 
 class DisplayHandler(object):
     def __init__(self, new_state_callback, command_handler):
@@ -112,7 +115,15 @@ class MainDisplay(Frame):
                 if self._occupation_list.value:
                     self._dh.command_handler.increment(
                         CommandType.OCCUPATIONS,
-                        self._occupation_list.value
+                        self._occupation_list.value,
+                        1
+                    )
+            elif event.key_code == ord("-"):
+                if self._occupation_list.value:
+                    self._dh.command_handler.increment(
+                        CommandType.OCCUPATIONS,
+                        self._occupation_list.value,
+                        -1
                     )
 
         # Force a refresh for responsive UI

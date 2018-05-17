@@ -1,9 +1,12 @@
+import logging
 from collections import OrderedDict
 from typing import Dict
 
 from cliciv.resource_manager import ResourceState
 from cliciv.technology_manager import TechnologyState
 from cliciv.worker_manager import WorkerState
+
+logger = logging.getLogger(__name__)
 
 
 class GameData(object):

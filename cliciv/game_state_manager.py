@@ -1,3 +1,5 @@
+import logging
+
 from thespian.actors import Actor, ActorExitRequest
 
 from cliciv.game_data import GameData
@@ -6,6 +8,9 @@ from cliciv.messages import ResourcesNewState, TechnologyNewState, WorkersNewSta
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager
 from cliciv.worker_manager import WorkerManager
+
+
+logger = logging.getLogger(__name__)
 
 
 class GameStateManager(Actor):
@@ -17,7 +22,7 @@ class GameStateManager(Actor):
         super(GameStateManager, self).__init__()
 
     def receiveMessage(self, msg, sender: Actor):
-        # self.logger().info("{}/{}".format(msg, self))
+        logger.info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
         elif isinstance(msg, Start):
@@ -33,8 +38,8 @@ class GameStateManager(Actor):
                 self.send(sender, self.game_data)
             else:
                 self.send(sender, GameStateUnavailable())
-        # else:
-        #     self.logger().error("Ignoring unexpected message: {}".format(msg))
+        else:
+            logger.error("Ignoring unexpected message: {}".format(msg))
 
     def start(self):
         self.resources_manager = self.createActor(ResourceManager, globalName="resource_manager")

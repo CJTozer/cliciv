@@ -3,7 +3,7 @@ from abc import ABC
 
 class ActorMessage(ABC):
     def __str__(self):
-        return self.__class__.__name__
+        return "{}({})".format(self.__class__.__name__, vars(self))
 
 
 class Start(ActorMessage):
@@ -51,6 +51,11 @@ class WorkerChangeRequest(ActorMessage):
     def __init__(self, worker_type, increment):
         self.worker_type = worker_type
         self.increment = increment
+
+
+class WorkerProfile(ActorMessage):
+    def __init__(self, new_profile):
+        self.new_profile = new_profile
 
 
 class GameStateRequest(ActorMessage):

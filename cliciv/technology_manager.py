@@ -1,8 +1,11 @@
+import logging
 from typing import List
 
 from thespian.actors import Actor, ActorExitRequest
 
 from cliciv.messages import RegisterForUpdates, TechnologyNewState
+
+logger = logging.getLogger(__name__)
 
 
 class TechnologyManager(Actor):
@@ -12,7 +15,7 @@ class TechnologyManager(Actor):
         super(TechnologyManager, self).__init__()
 
     def receiveMessage(self, msg, sender: str):
-        # self.logger().info("{}/{}".format(msg, self))
+        logger.info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
         elif isinstance(msg, RegisterForUpdates):
@@ -20,11 +23,11 @@ class TechnologyManager(Actor):
             if sender not in self.registered:
                 self.registered.append(sender)
             self.send(sender, TechnologyNewState(self.technology_state))
-        # else:
-        #     self.logger().error("Ignoring unexpected message: {}".format(msg))
+        else:
+            logger.error("Ignoring unexpected message: {}".format(msg))
 
 
 class TechnologyState(object):
     def __init__(self):
-        self.unlocked_occupations = ["idle", "gatherer", "builder"]
+        self.unlocked_occupations = ["gatherer", "woodcutter", "builder"]
         self.unlocked_materials = ["food", "wood"]

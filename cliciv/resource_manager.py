@@ -1,9 +1,12 @@
+import logging
 from typing import List, Dict
 
 from thespian.actors import Actor, ActorExitRequest
 
 from cliciv.messages import ResourcesNewState, ResourcesRequest, ResourcesRequestGranted, ResourcesRequestDenied, \
     RegisterForUpdates, ResourcesProduced
+
+logger = logging.getLogger(__name__)
 
 
 class ResourceManager(Actor):
@@ -13,7 +16,7 @@ class ResourceManager(Actor):
         super(ResourceManager, self).__init__()
 
     def receiveMessage(self, msg, sender: str):
-        # self.logger().info("{}/{}".format(msg, self))
+        logger.debug("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
         elif isinstance(msg, RegisterForUpdates):
@@ -30,8 +33,8 @@ class ResourceManager(Actor):
         elif isinstance(msg, ResourcesProduced):
             self.resource_state.store(msg.produced)
             self.notify_all()
-        # else:
-        #     self.logger().error("Ignoring unexpected message: {}".format(msg))
+        else:
+            logger.error("Ignoring unexpected message: {}".format(msg))
 
     def notify_all(self):
         for r in self.registered:
@@ -41,20 +44,20 @@ class ResourceManager(Actor):
 class ResourceState(object):
     def __init__(self):
         self.materials = {
-            "food": 5.0,
-            "water": 2.0,
-            "wood": 2.6,
-            "stone": 0.0,
+            "food": 100.0,
+            "water": 100.0,
+            "wood": 100.0,
+            "stone": 100.0,
         }
 
     def satisfy(self, requested: Dict[str, float]) -> bool:
-        if all([
+        if not requested or all([
             self.materials.get(material, 0.0) >= amount
             for material, amount in requested.items()
         ]):
             for material, amount in requested.items():
                 self.materials[material] -= amount
-                return True
+            return True
         return False
 
     def store(self, resources: Dict[str, float]):
