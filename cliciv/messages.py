@@ -47,6 +47,12 @@ class WorkersNewState(ActorMessage):
         self.new_state = new_state
 
 
+class WorkerChangeRequest(ActorMessage):
+    def __init__(self, worker_type, increment):
+        self.worker_type = worker_type
+        self.increment = increment
+
+
 class GameStateRequest(ActorMessage):
     pass
 

@@ -2,7 +2,7 @@ from typing import List, Dict
 
 from thespian.actors import Actor, ActorExitRequest
 
-from cliciv.messages import WorkersNewState, TechnologyNewState, Start, RegisterForUpdates
+from cliciv.messages import WorkersNewState, TechnologyNewState, Start, RegisterForUpdates, WorkerChangeRequest
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager
 from cliciv.worker import WorkerFactory
@@ -21,6 +21,8 @@ class WorkerManager(Actor):
 
     def receiveMessage(self, msg, sender: str):
         # self.logger().info("{}/{}".format(msg, self))
+        notify_change = False
+
         if isinstance(msg, ActorExitRequest):
             self.stop_workers()
         elif isinstance(msg, Start):
@@ -41,8 +43,27 @@ class WorkerManager(Actor):
             self.send(sender, WorkersNewState(self.worker_state))
         elif isinstance(msg, TechnologyNewState):
             self.technology_state = msg.new_state
+        elif isinstance(msg, WorkerChangeRequest):
+            new_idle_count = len(self.workers.get('idle', [])) - msg.increment
+            new_type_count = len(self.workers.get(msg.worker_type, [])) + msg.increment
+            if new_idle_count >= 0 and new_type_count >= 0:
+                # The transition seems reasonable
+                if msg.increment > 0:
+                    # Move workers from idle to a new job
+                    for _ in range(msg.increment):
+                        remove_worker = self.workers['idle'].pop()
+                        self.send(remove_worker, ActorExitRequest())
+
+                notify_change = True
+
         # else:
         #     self.logger().error("Ignoring unexpected message: {}".format(msg))
+
+        self.worker_state.recalculate(self.workers)
+
+        if notify_change:
+            for actor in self.registered:
+                self.send(actor, WorkersNewState(self.worker_state))
 
     def workers_list(self):
         return [
@@ -68,3 +89,9 @@ class WorkerState(object):
             "builder": 0,
             "woodcutter": 0,
         }
+
+    def recalculate(self, workers):
+        self.occupations = {}
+        for worker_type, workers in workers.items():
+            self.occupations[worker_type] = len(workers)
+

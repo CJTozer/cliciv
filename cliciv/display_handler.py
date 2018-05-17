@@ -4,12 +4,14 @@ from asciimatics.scene import Scene
 from asciimatics.screen import Screen
 from asciimatics.widgets import Frame, Layout, Label, MultiColumnListBox
 
+from cliciv.command_handler import CommandType
 from cliciv.game_data import GameData
 
 
 class DisplayHandler(object):
-    def __init__(self, new_state_callback):
-        self._new_state_callback = new_state_callback
+    def __init__(self, new_state_callback, command_handler):
+        self.new_state_callback = new_state_callback
+        self.command_handler = command_handler
 
     def do_display(self) -> None:
         while True:
@@ -20,13 +22,13 @@ class DisplayHandler(object):
                 pass
 
     def _main_display(self, screen):
-        frame = MainDisplay(screen, self._new_state_callback)
+        frame = MainDisplay(screen, self)
         scene = Scene([frame], -1)
         screen.play([scene])
 
 
 class MainDisplay(Frame):
-    def __init__(self, screen, new_state_callback):
+    def __init__(self, screen, display_handler):
         super(MainDisplay, self).__init__(screen,
                                           screen.height,
                                           screen.width,
@@ -35,7 +37,7 @@ class MainDisplay(Frame):
 
         # Internal state required for doing periodic updates
         self._last_frame = 0
-        self._new_state_callback = new_state_callback
+        self._dh = display_handler
 
         # Create the basic form layout...
         layout = Layout([1], fill_frame=True)
@@ -75,7 +77,7 @@ class MainDisplay(Frame):
             last_occupation_selection = self._occupation_list.value
             last_occupation_start_line = self._occupation_list.start_line
 
-            game_data: GameData = self._new_state_callback()
+            game_data: GameData = self._dh.new_state_callback()
             resource_data = [
                 ([resource, "{:.2f}".format(amount)], resource)
                 for resource, amount in game_data.visible_resources.items()
@@ -107,7 +109,14 @@ class MainDisplay(Frame):
             if event.key_code in [Screen.ctrl("c")]:
                 raise StopApplication("User quit")
             elif event.key_code == ord("+"):
-                pass
+                if self._occupation_list.value:
+                    self._dh.command_handler.increment(
+                        CommandType.OCCUPATIONS,
+                        self._occupation_list.value
+                    )
+
+        # Force a refresh for responsive UI
+        self._last_frame = 0
 
         # Now pass on to lower levels for normal handling of the event.
         return super(MainDisplay, self).process_event(event)

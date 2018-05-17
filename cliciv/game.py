@@ -1,7 +1,5 @@
-import time
 from typing import List
 
-from asciimatics.screen import Screen
 from thespian.actors import ActorSystem, ActorExitRequest, Actor
 
 from cliciv.command_handler import CommandHandler
@@ -26,8 +24,8 @@ class Game(object):
 class Coordinator():
     def __init__(self):
         self.actor_system = ActorSystem('multiprocQueueBase')
-        self.command_handler = CommandHandler()
-        self.display_handler = DisplayHandler(self.get_new_game_data)
+        self.command_handler = CommandHandler(self)
+        self.display_handler = DisplayHandler(self.get_new_game_data, self.command_handler)
 
         self.resource_manager: Actor = self.actor_system.createActor(ResourceManager, globalName="resource_manager")
         self.technology_manager: Actor = self.actor_system.createActor(TechnologyManager, globalName="technology_manager")
