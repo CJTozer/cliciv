@@ -1,9 +1,8 @@
-from collections import defaultdict
-
-from asciimatics.exceptions import ResizeScreenError
+from asciimatics.event import KeyboardEvent
+from asciimatics.exceptions import ResizeScreenError, StopApplication
 from asciimatics.scene import Scene
 from asciimatics.screen import Screen
-from asciimatics.widgets import Frame, Layout, Label, MultiColumnListBox, Widget
+from asciimatics.widgets import Frame, Layout, Label, MultiColumnListBox
 
 from cliciv.game_data import GameData
 
@@ -15,7 +14,8 @@ class DisplayHandler(object):
     def do_display(self) -> None:
         while True:
             try:
-                Screen.wrapper(self._main_display)
+                Screen.wrapper(self._main_display, catch_interrupt=True)
+                return
             except ResizeScreenError:
                 pass
 
@@ -100,3 +100,14 @@ class MainDisplay(Frame):
     def frame_update_count(self):
         # Refresh once every 0.5 seconds by default.
         return 10
+
+    def process_event(self, event):
+        # Do the key handling for this Frame.
+        if isinstance(event, KeyboardEvent):
+            if event.key_code in [Screen.ctrl("c")]:
+                raise StopApplication("User quit")
+            elif event.key_code == ord("+"):
+                pass
+
+        # Now pass on to lower levels for normal handling of the event.
+        return super(MainDisplay, self).process_event(event)
