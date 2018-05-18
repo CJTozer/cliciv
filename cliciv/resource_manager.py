@@ -48,6 +48,7 @@ class ResourceState(object):
             "water": 100.0,
             "wood": 100.0,
             "stone": 100.0,
+            "animals": 5.0
         }
 
     def satisfy(self, requested: Dict[str, float]) -> bool:

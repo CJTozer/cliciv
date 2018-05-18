@@ -1,0 +1,19 @@
+gatherer:
+  produces:
+    food: 0.5
+
+woodcutter:
+  needs:
+    food: 1
+  produces:
+    wood: 1
+
+hunter:
+  needs:
+    food: 1
+  produces:
+    animals: 1
+  other:
+    for: 2
+
+builder:

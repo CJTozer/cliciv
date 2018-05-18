@@ -1,6 +1,8 @@
 import logging
+import os
 from typing import Dict
 
+import yaml
 from thespian.actors import Actor, ActorExitRequest, WakeupMessage
 
 from cliciv.messages import ResourcesRequest, Start, ResourcesRequestGranted, ResourcesRequestDenied, ResourcesProduced, \
@@ -11,29 +13,42 @@ from cliciv.technology_manager import TechnologyManager
 logger = logging.getLogger(__name__)
 
 
+class _ProfileDictType(type):
+    def __getitem__(cls, item):
+        if not cls.ready:
+            cls.load()
+        return cls._DICT[item]
+
+
+class Profiles(object, metaclass=_ProfileDictType):
+    """
+    dict-like type that loads occupation definitions once.
+
+    Use as `Profiles['gatherer']`
+    """
+    _DICT = {}
+    ready = False
+    OCCUPATION_DATA_FILE = os.path.join(
+        os.path.dirname(__file__),
+        'data',
+        'occupations.yaml')
+
+    @staticmethod
+    def load():
+        with open(Profiles.OCCUPATION_DATA_FILE) as f:
+            for k, p in yaml.load(f).items():
+                logger.debug("Creating profile '{}' with data: {}".format(k, p))
+                Profiles._DICT[k] = Profile(**(p or {}))
+
+        Profiles.ready = True
+
+
 class Profile(object):
-    def __init__(self, needs=None, produces=None):
+    def __init__(self, needs=None, produces=None, **kwargs):
         self.needs = needs or {}
         self.produces = produces or {}
-
-
-Profiles = {
-    'gatherer': Profile(
-        needs={},
-        produces={
-            'food': 0.5
-        }
-    ),
-    'woodcutter': Profile(
-        needs={
-            'food': 1
-        },
-        produces={
-            'wood': 1
-        }
-    ),
-    'builder': Profile(),
-}
+        if kwargs:
+            logger.warning("Ignoring unexpected profile parameters: {}".format(kwargs))
 
 
 class WorkerFactory():
@@ -61,7 +76,7 @@ class Worker(Actor):
         self.resources_manager: Actor = None
         self.technology_manager: Actor = None
         self._profile = None
-        self._epoch = 0 # Track to ensure stale wakeups don't generate extra resources
+        self._epoch = 0 # Track to ensure stale wake-ups don't generate extra resources
         super(Worker, self).__init__()
     
     def receiveMessage(self, msg, sender):
@@ -88,14 +103,14 @@ class Worker(Actor):
 
     def start_work(self):
         if not self._profile:
-            # ERROR LOG
+            logger.error("Starting work with no profile!")
             return
 
         self.send(self.resources_manager, ResourcesRequest(self._profile.needs))
 
     def produce_output(self):
         if not self._profile:
-            # ERROR LOG
+            logger.error("Producing output with no profile!")
             return
 
         self.send(self.resources_manager, ResourcesProduced(self._profile.produces))
