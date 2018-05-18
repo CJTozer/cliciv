@@ -13,7 +13,12 @@ hunter:
     food: 1
   produces:
     animals: 1
-  other:
-    for: 2
+
+butcher:
+  needs:
+    food: 1
+    animals: 1
+  produces:
+    food: 3
 
 builder:

@@ -29,5 +29,5 @@ class TechnologyManager(Actor):
 
 class TechnologyState(object):
     def __init__(self):
-        self.unlocked_occupations = ["gatherer", "woodcutter", "builder"]
-        self.unlocked_materials = ["food", "wood"]
+        self.unlocked_occupations = ["gatherer", "woodcutter", "builder", "hunter", "butcher"]
+        self.unlocked_materials = ["food", "wood", "water", "stone", "animals"]

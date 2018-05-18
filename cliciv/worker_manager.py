@@ -94,7 +94,7 @@ class WorkerManager(Actor):
     def _assign_worker(self, worker, worker_type):
         self.send(worker, WorkerProfile(Profiles[worker_type]))
         if worker_type not in self.workers:
-            self.workers = []
+            self.workers[worker_type] = []
         self.workers[worker_type].append(worker)
 
 
