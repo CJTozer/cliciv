@@ -4,7 +4,7 @@ from typing import List, Dict
 from thespian.actors import Actor, ActorExitRequest
 
 from cliciv.messages import WorkersNewState, TechnologyNewState, Start, RegisterForUpdates, WorkerChangeRequest, \
-    WorkerProfile
+    WorkerProfile, InitialState
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager
 from cliciv.worker import WorkerFactory, Profiles
@@ -14,11 +14,12 @@ logger = logging.getLogger(__name__)
 
 class WorkerManager(Actor):
     def __init__(self):
+        self.started = False
         self.registered = []
         self.resources_manager: Actor = None
         self.technology_manager: Actor = None
         self.technology_state = None
-        self.worker_state = WorkerState()
+        self.worker_state = None
         self.worker_factory = None
         self.workers: Dict[str, List[Actor]] = {}
         super(WorkerManager, self).__init__()
@@ -29,17 +30,18 @@ class WorkerManager(Actor):
 
         if isinstance(msg, ActorExitRequest):
             self.stop_workers()
+        elif isinstance(msg, InitialState):
+            self.worker_state = WorkerState(msg.state['workers'])
+            if self.started:
+                self.start()
         elif isinstance(msg, Start):
-            self.resources_manager = self.createActor(ResourceManager, globalName="resource_manager")
-            self.technology_manager = self.createActor(TechnologyManager, globalName="technology_manager")
-            self.worker_factory = WorkerFactory(self)
-            self.workers = self.worker_factory.from_config(
-                self.worker_state.occupations
-            )
-            # Register for tech updates
-            self.send(self.technology_manager, RegisterForUpdates())
-            # Start Workers
-            self.start_workers()
+            # Can't guarantee the order of InitialState and Start, so cope with both orders
+            if self.worker_state:
+                self.start()
+            else:
+                logger.info("Waiting for initial state before starting")
+                self.started = True
+                return
         elif isinstance(msg, RegisterForUpdates):
             # `ActorAddress` can't be hashed, so can't just use set() here
             if sender not in self.registered:
@@ -74,6 +76,18 @@ class WorkerManager(Actor):
             for actor in self.registered:
                 self.send(actor, WorkersNewState(self.worker_state))
 
+    def start(self):
+        self.resources_manager = self.createActor(ResourceManager, globalName="resource_manager")
+        self.technology_manager = self.createActor(TechnologyManager, globalName="technology_manager")
+        self.worker_factory = WorkerFactory(self)
+        self.workers = self.worker_factory.from_config(
+            self.worker_state.occupations
+        )
+        # Register for tech updates
+        self.send(self.technology_manager, RegisterForUpdates())
+        # Start Workers
+        self.start_workers()
+
     def workers_list(self):
         return [
             w
@@ -82,6 +96,7 @@ class WorkerManager(Actor):
         ]
 
     def start_workers(self):
+        logger.info(self.workers)
         for worker_type, worker_list in self.workers.items():
             for worker in worker_list:
                 self.send(worker, WorkerProfile(Profiles[worker_type]))
@@ -99,12 +114,8 @@ class WorkerManager(Actor):
 
 
 class WorkerState(object):
-    def __init__(self):
-        self.occupations = {
-            "gatherer": 5,
-            "builder": 0,
-            "woodcutter": 0,
-        }
+    def __init__(self, initial_occupations):
+        self.occupations = initial_occupations
 
     def recalculate(self, workers):
         self.occupations = {}

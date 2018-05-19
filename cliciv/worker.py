@@ -76,23 +76,25 @@ class Worker(Actor):
         super(Worker, self).__init__()
     
     def receiveMessage(self, msg, sender):
-        logger.debug("{}/{}".format(msg, self))
+        logger.info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
         elif isinstance(msg, WorkerProfile):
             logger.debug("New profile: {}".format(msg.new_profile))
             self._profile = msg.new_profile
             self._epoch += 1
-            self.wakeupAfter(1, self._epoch)
         elif isinstance(msg, Start) or (isinstance(msg, WakeupMessage) and msg.payload == self._epoch):
             self.resources_manager = self.createActor(ResourceManager, globalName="resource_manager")
             self.technology_manager = self.createActor(TechnologyManager, globalName="technology_manager")
             self.start_work()
+        elif isinstance(msg, WakeupMessage):
+            logger.debug("Stale wakeup message, must have new profile")
+            self.wakeupAfter(1, self._epoch)
         elif isinstance(msg, ResourcesRequestGranted):
             self.produce_output()
             self.wakeupAfter(1, self._epoch)
         elif isinstance(msg, ResourcesRequestDenied):
-            logger.warn("Worker {} request for resources denied".format(self))
+            logger.warning("Worker {} request for resources denied".format(self))
             self.wakeupAfter(1, self._epoch)
         else:
             logger.error("Ignoring unexpected message: {}".format(msg))

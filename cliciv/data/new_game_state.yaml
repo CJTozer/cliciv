@@ -11,3 +11,6 @@ technology:
   unlocked_resources:
     - food
     - wood
+
+workers:
+  gatherer: 1

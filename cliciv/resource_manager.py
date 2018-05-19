@@ -16,7 +16,7 @@ class ResourceManager(Actor):
         super(ResourceManager, self).__init__()
 
     def receiveMessage(self, msg, sender: str):
-        logger.debug("{}/{}".format(msg, self))
+        logger.info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
         elif isinstance(msg, InitialState):
