@@ -40,6 +40,10 @@ class Profiles(object, metaclass=_ProfileDictType):
 
         Profiles.ready = True
 
+    @staticmethod
+    def override(old_key, new_key):
+        Profiles._DICT[old_key] = Profiles._DICT[new_key]
+
 
 class Profile(object):
     def __init__(self, occupation, needs=None, produces=None, **kwargs):

@@ -69,5 +69,5 @@ class TechnologyState(object):
         ])
 
     def set_researched(self, research_id):
-        research_info = self.unlocked_research.pop(research_id)
-        self.completed_research[research_id] = research_info
+        logger.info("Marking {} as researched".format(research_id))
+        self.completed_research[research_id] = self.unlocked_research.pop(research_id)

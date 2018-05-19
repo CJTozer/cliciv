@@ -48,6 +48,7 @@ class WorkerManager(Actor):
                 self.registered.append(sender)
             self.send(sender, WorkersNewState(self.worker_state))
         elif isinstance(msg, TechnologyNewState):
+            self._handle_tech_update(msg.new_state)
             self.technology_state = msg.new_state
         elif isinstance(msg, WorkerChangeRequest):
             new_gatherer_count = len(self.workers.get('gatherer', [])) - msg.increment
@@ -111,6 +112,22 @@ class WorkerManager(Actor):
         if worker_type not in self.workers:
             self.workers[worker_type] = []
         self.workers[worker_type].append(worker)
+
+    def _handle_tech_update(self, new_state):
+        for id, info in new_state.completed_research.items():
+            logger.info("Newly completed research: {}".format(new_state.completed_research))
+            if 'occupation-replace' in info['produces']:
+                self._replace_occupation(info['produces']['occupation-replace'])
+
+    def _replace_occupation(self, replace_info):
+        logger.info("Replacing occupation: {}".format(replace_info))
+        old_occupation = replace_info['old']
+        new_occupation = replace_info['new']
+        Profiles.override(old_occupation, new_occupation)
+        # Send the 'old' profile again, because now it's been updated
+        # Don't use _assign_worker as we don't need to update the dict/list
+        for worker in self.workers[old_occupation]:
+            self.send(worker, WorkerProfile(Profiles[old_occupation]))
 
 
 class WorkerState(object):
