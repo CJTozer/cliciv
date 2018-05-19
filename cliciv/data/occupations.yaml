@@ -6,7 +6,21 @@ woodcutter:
   needs:
     food: 1
   produces:
-    wood: 1
+    wood: 0.5
+
+woodcutter-with-axe:
+  needs:
+    food: 1
+    stone: 0.1
+  produces:
+    wood: 1.2
+
+quarryman:
+  needs:
+    food: 1
+    wood: 0.1
+  produces:
+    stone: 0.2
 
 hunter:
   needs:

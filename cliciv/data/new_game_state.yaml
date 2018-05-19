@@ -5,12 +5,12 @@ technology:
   unlocked_occupations:
     - gatherer
     - woodcutter
-    - builder
-    - hunter
+    - quarryman
 
   unlocked_resources:
     - food
     - wood
+    - stone
 
   research_accrued: {}
 
