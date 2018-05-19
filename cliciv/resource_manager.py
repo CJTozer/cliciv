@@ -43,7 +43,7 @@ class ResourceManager(Actor):
 
 class ResourceState(object):
     def __init__(self):
-        self.materials = {
+        self.resources = {
             "food": 100.0,
             "water": 100.0,
             "wood": 100.0,
@@ -53,14 +53,14 @@ class ResourceState(object):
 
     def satisfy(self, requested: Dict[str, float]) -> bool:
         if not requested or all([
-            self.materials.get(material, 0.0) >= amount
-            for material, amount in requested.items()
+            self.resources.get(resource, 0.0) >= amount
+            for resource, amount in requested.items()
         ]):
-            for material, amount in requested.items():
-                self.materials[material] -= amount
+            for resource, amount in requested.items():
+                self.resources[resource] -= amount
             return True
         return False
 
     def store(self, resources: Dict[str, float]):
-        for material, amount in resources.items():
-            self.materials[material] = self.materials.get(material, 0.0) + amount
+        for resource, amount in resources.items():
+            self.resources[resource] = self.resources.get(resource, 0.0) + amount

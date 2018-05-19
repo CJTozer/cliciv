@@ -30,8 +30,8 @@ class GameData(object):
     def visible_resources(self) -> Dict[str, float]:
         # Maintain ordering from `unlocked_resources`
         return OrderedDict([
-            (k, self.resources.materials.get(k, 0.0))
-            for k in self.technology.unlocked_materials
+            (k, self.resources.resources.get(k, 0.0))
+            for k in self.technology.unlocked_resources
         ])
 
     @property

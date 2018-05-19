@@ -8,6 +8,6 @@ technology:
     - builder
     - hunter
 
-  unlocked_materials:
+  unlocked_resources:
     - food
     - wood

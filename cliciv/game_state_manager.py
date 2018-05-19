@@ -49,6 +49,7 @@ class GameStateManager(Actor):
 
         # Always starting from a new game for now
         new_game_state = dict_from_data('new_game_state')
+        self.send(self.resources_manager, InitialState(new_game_state))
         self.send(self.technology_manager, InitialState(new_game_state))
 
         self.send(self.resources_manager, RegisterForUpdates())

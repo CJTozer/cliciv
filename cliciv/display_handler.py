@@ -50,7 +50,7 @@ class MainDisplay(Frame):
             10,  # Height
             ["<10", ">10"],
             [],
-            titles=["Material", "Quantity"],
+            titles=["Resource", "Quantity"],
             name="res_list")
 
         # ...then the occupation list
