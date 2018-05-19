@@ -114,20 +114,14 @@ class WorkerManager(Actor):
         self.workers[worker_type].append(worker)
 
     def _handle_tech_update(self, new_state):
-        for id, info in new_state.completed_research.items():
-            logger.info("Newly completed research: {}".format(new_state.completed_research))
-            if 'occupation-replace' in info['produces']:
-                self._replace_occupation(info['produces']['occupation-replace'])
-
-    def _replace_occupation(self, replace_info):
-        logger.info("Replacing occupation: {}".format(replace_info))
-        old_occupation = replace_info['old']
-        new_occupation = replace_info['new']
-        Profiles.override(old_occupation, new_occupation)
-        # Send the 'old' profile again, because now it's been updated
-        # Don't use _assign_worker as we don't need to update the dict/list
-        for worker in self.workers[old_occupation]:
-            self.send(worker, WorkerProfile(Profiles[old_occupation]))
+        for research_id, research_info in new_state.completed_research.items():
+            logger.info("Newly completed research '{}': {}".format(research_id, new_state.completed_research))
+            if 'profile-update' in research_info['produces']:
+                updated_occupations = Profiles.update(research_id, research_info['produces']['profile-update'])
+                # Refresh each affected worker's profile
+                for occupation in updated_occupations:
+                    for worker in self.workers[occupation]:
+                        self.send(worker, WorkerProfile(Profiles[occupation]))
 
 
 class WorkerState(object):

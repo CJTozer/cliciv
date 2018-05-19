@@ -2,24 +2,11 @@ gatherer:
   produces:
     food: 0.5
 
-gatherer-basket:
-  needs:
-    wood: 0.1
-  produces:
-    food: 0.75
-
 woodcutter:
   needs:
     food: 1
   produces:
     wood: 0.5
-
-woodcutter-stone-axe:
-  needs:
-    food: 1
-    stone: 0.1
-  produces:
-    wood: 1.2
 
 quarryman:
   needs:

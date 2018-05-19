@@ -5,9 +5,12 @@ basket-weaving:
     research_accrued:
       gatherer: 5
   produces:
-    occupation-replace:
-      old: gatherer
-      new: gatherer-basket
+    profile-update:
+      gatherer:
+        requires:
+          wood: 0.1
+        produces:
+          food: 0.25
 
 stone-axes:
   name: stone axes
@@ -17,6 +20,9 @@ stone-axes:
       woodcutter: 2
       quarryman: 1
   produces:
-    occupation-replace:
-      old: woodcutter
-      new: woodcutter-stone-axe
+    profile-update:
+      woodcutter:
+        requires:
+          stone: 0.1
+        produces:
+          wood: 0.25

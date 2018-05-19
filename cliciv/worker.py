@@ -1,9 +1,7 @@
 import logging
-import os
 import random
-from typing import Dict
+from typing import Dict, List
 
-import yaml
 from thespian.actors import Actor, ActorExitRequest, WakeupMessage
 
 from cliciv.messages import ResourcesRequest, Start, ResourcesRequestGranted, ResourcesRequestDenied, ResourcesProduced, \
@@ -11,6 +9,7 @@ from cliciv.messages import ResourcesRequest, Start, ResourcesRequestGranted, Re
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager
 from cliciv.utils.data import dict_from_data
+from cliciv.utils.dicts import dict_apply_delta
 from cliciv.utils.game_parameters import GameParameters
 
 logger = logging.getLogger(__name__)
@@ -40,9 +39,19 @@ class Profiles(object, metaclass=_ProfileDictType):
 
         Profiles.ready = True
 
-    @staticmethod
-    def override(old_key, new_key):
-        Profiles._DICT[old_key] = Profiles._DICT[new_key]
+    @classmethod
+    def update(cls, research_id, profile_update) -> List[str]:
+        updated = []
+        for occupation, info in profile_update.items():
+            profile: Profile = Profiles._DICT[occupation]
+            if research_id in profile.upgrades:
+                # Already got this upgrade
+                continue
+
+            profile.apply_upgrade(research_id, info)
+            updated.append(occupation)
+
+        return updated
 
 
 class Profile(object):
@@ -50,8 +59,16 @@ class Profile(object):
         self.occupation = occupation
         self.needs = needs or {}
         self.produces = produces or {}
+        self.upgrades = []
         if kwargs:
             logger.warning("Ignoring unexpected profile parameters: {}".format(kwargs))
+
+    def apply_upgrade(self, research_id, info):
+        self.upgrades.append(research_id)
+        if 'requires' in info:
+            dict_apply_delta(self.needs, info['requires'])
+        if 'produces' in info:
+            dict_apply_delta(self.needs, info['produces'])
 
 
 class WorkerFactory():
