@@ -1,6 +1,6 @@
 basket-weaving:
   name: basket weaving
-  help: help text for basket weaving
+  help: Allows your gatheres to carry more, at the cost of a small amount of wood.
   requires:
     research_accrued:
       gatherer: 5
@@ -14,7 +14,7 @@ basket-weaving:
 
 stone-axes:
   name: stone axes
-  help: help text for stone axes
+  help: Allows your woodcutters to chop faster, at the cost of a small amount of stone.
   requires:
     research_accrued:
       woodcutter: 2

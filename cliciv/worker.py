@@ -68,7 +68,7 @@ class Profile(object):
         if 'requires' in info:
             dict_apply_delta(self.needs, info['requires'])
         if 'produces' in info:
-            dict_apply_delta(self.needs, info['produces'])
+            dict_apply_delta(self.produces, info['produces'])
 
 
 class WorkerFactory():
