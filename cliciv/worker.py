@@ -1,15 +1,17 @@
 import logging
 import os
+import random
 from typing import Dict
 
 import yaml
 from thespian.actors import Actor, ActorExitRequest, WakeupMessage
 
 from cliciv.messages import ResourcesRequest, Start, ResourcesRequestGranted, ResourcesRequestDenied, ResourcesProduced, \
-    WorkerProfile
+    WorkerProfile, TechProduced
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager
 from cliciv.utils.data import dict_from_data
+from cliciv.utils.game_parameters import GameParameters
 
 logger = logging.getLogger(__name__)
 
@@ -34,13 +36,14 @@ class Profiles(object, metaclass=_ProfileDictType):
     def load():
         for k, p in dict_from_data('occupations').items():
             logger.debug("Creating profile '{}' with data: {}".format(k, p))
-            Profiles._DICT[k] = Profile(**(p or {}))
+            Profiles._DICT[k] = Profile(k, **(p or {}))
 
         Profiles.ready = True
 
 
 class Profile(object):
-    def __init__(self, needs=None, produces=None, **kwargs):
+    def __init__(self, occupation, needs=None, produces=None, **kwargs):
+        self.occupation = occupation
         self.needs = needs or {}
         self.produces = produces or {}
         if kwargs:
@@ -72,9 +75,9 @@ class Worker(Actor):
         self.resources_manager: Actor = None
         self.technology_manager: Actor = None
         self._profile = None
-        self._epoch = 0 # Track to ensure stale wake-ups don't generate extra resources
+        self._epoch = 0  # Track to ensure stale wake-ups don't generate extra resources
         super(Worker, self).__init__()
-    
+
     def receiveMessage(self, msg, sender):
         logger.info("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
@@ -112,3 +115,7 @@ class Worker(Actor):
             return
 
         self.send(self.resources_manager, ResourcesProduced(self._profile.produces))
+
+        # Chance of generating some useful insight into their job
+        if random.random() < GameParameters.CHANCE_OF_TECH:
+            self.send(self.technology_manager, TechProduced(self._profile.occupation))

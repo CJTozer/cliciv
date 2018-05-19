@@ -12,5 +12,7 @@ technology:
     - food
     - wood
 
+  research_accrued: {}
+
 workers:
   gatherer: 1

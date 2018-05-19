@@ -3,7 +3,7 @@ from typing import List
 
 from thespian.actors import Actor, ActorExitRequest
 
-from cliciv.messages import RegisterForUpdates, TechnologyNewState, InitialState
+from cliciv.messages import RegisterForUpdates, TechnologyNewState, InitialState, TechProduced
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +25,9 @@ class TechnologyManager(Actor):
             if sender not in self.registered:
                 self.registered.append(sender)
             self.send(sender, TechnologyNewState(self.technology_state))
+        elif isinstance(msg, TechProduced):
+            old_amount = self.technology_state.research_accrued.get(msg.area)
+            self.technology_state.research_accrued[msg.area] = old_amount
         else:
             logger.error("Ignoring unexpected message: {}".format(msg))
 
