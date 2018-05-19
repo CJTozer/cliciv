@@ -47,6 +47,7 @@ class TechnologyManager(Actor):
             logger.info("New research unlocked: {}".format(
                 [t for t in unlocked_research if t not in self.technology_state.unlocked_research]
             ))
+            self.technology_state.unlocked_research = unlocked_research
             self.notify_all()
 
 

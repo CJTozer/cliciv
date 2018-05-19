@@ -101,27 +101,34 @@ class MainDisplay(Frame):
         if frame_no - self._last_frame >= self.frame_update_count or self._last_frame == 0:
             self._last_frame = frame_no
 
-            # Create the data to go in the multi-column list...
-            last_occupation_selection = self._occupation_list.value
-            last_occupation_start_line = self._occupation_list.start_line
-
+            # Get up-to-date data
             game_data: GameData = self._dh.new_state_callback()
+
+            # Resources list
             resource_data = [
                 ([resource, "{:.2f}".format(amount)], resource)
                 for resource, amount in game_data.visible_resources.items()
             ]
+            self._resources_list.disabled = True
+            self._resources_list.options = resource_data
+
+            # Occupation list
+            last_occupation_selection = self._occupation_list.value
+            last_occupation_start_line = self._occupation_list.start_line
             occupation_data = [
                 ([occupation, "{}".format(number)], occupation)
                 for occupation, number in game_data.visible_occupations.items()
             ]
-
-            # Update the list and try to reset the last selection.
-            self._resources_list.disabled = True
-            self._resources_list.options = resource_data
-
             self._occupation_list.options = occupation_data
             self._occupation_list.value = last_occupation_selection
             self._occupation_list.start_line = last_occupation_start_line
+
+            # Research available list
+            research_available = [
+                (r, 1)
+                for r in game_data.technology.unlocked_research
+            ]
+            self._available_research.options = research_available
 
         # Now redraw as normal
         super(MainDisplay, self)._update(frame_no)
