@@ -63,6 +63,9 @@ class TechnologyState(object):
 
     def satisfies(self, required):
         # Check whether enough tech has been accrued
+        if 'research_accrued' not in required:
+            return True
+
         return all([
             self.research_accrued.get(k, 0) >= v
             for k, v in required['research_accrued'].items()

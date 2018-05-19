@@ -15,17 +15,4 @@ quarryman:
   produces:
     stone: 0.2
 
-hunter:
-  needs:
-    food: 1
-  produces:
-    animals: 1
-
-butcher:
-  needs:
-    food: 1
-    animals: 1
-  produces:
-    food: 3
-
 builder:

@@ -20,3 +20,6 @@ technology:
 
 workers:
   gatherer: 10
+
+buildings:
+  hut: 1
