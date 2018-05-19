@@ -11,9 +11,9 @@ logger = logging.getLogger(__name__)
 
 class GameData(object):
     def __init__(self,
-                 resources: ResourceState={},
-                 technology: TechnologyState={},
-                 workers: WorkerState={}):
+                 resources: ResourceState=None,
+                 technology: TechnologyState=None,
+                 workers: WorkerState=None):
         self.resources = resources
         self.technology = technology
         self.workers = workers

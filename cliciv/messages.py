@@ -10,6 +10,11 @@ class Start(ActorMessage):
     pass
 
 
+class InitialState(ActorMessage):
+    def __init__(self, state):
+        self.state = state
+
+
 class RegisterForUpdates(ActorMessage):
     pass
 
