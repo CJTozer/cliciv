@@ -4,12 +4,13 @@ from asciimatics.event import KeyboardEvent
 from asciimatics.exceptions import ResizeScreenError, StopApplication
 from asciimatics.scene import Scene
 from asciimatics.screen import Screen
-from asciimatics.widgets import Frame, Layout, Label, MultiColumnListBox
+from asciimatics.widgets import Frame, Layout, Label, MultiColumnListBox, Divider, ListBox
 
 from cliciv.command_handler import CommandType
 from cliciv.game_data import GameData
 
 logger = logging.getLogger(__name__)
+
 
 class DisplayHandler(object):
     def __init__(self, new_state_callback, command_handler):
@@ -42,29 +43,53 @@ class MainDisplay(Frame):
         self._last_frame = 0
         self._dh = display_handler
 
-        # Create the basic form layout...
-        layout = Layout([1], fill_frame=True)
+        # Create the resources view layout...
+        status_layout = Layout([1, 1], fill_frame=False)
 
         # ...the resources list
         self._resources_list = MultiColumnListBox(
             10,  # Height
-            ["<10", ">10"],
+            ["<12", ">10"],
             [],
-            titles=["Resource", "Quantity"],
-            name="res_list")
+        )
+        self._is_tab_stop = False
 
         # ...then the occupation list
         self._occupation_list = MultiColumnListBox(
-            10, # Height
-            ["<10", ">10"],
+            10,  # Height
+            ["<12", ">10"],
             [],
-            titles=["Occupation", "Number"],
-            name="pop_list")
+        )
 
-        self.add_layout(layout)
-        layout.add_widget(self._resources_list)
-        layout.add_widget(self._occupation_list)
-        layout.add_widget(Label("Some help text"))
+        self.add_layout(status_layout)
+        status_layout.add_widget(Label("Resources"), column=0)
+        status_layout.add_widget(self._resources_list, column=0)
+        status_layout.add_widget(Label("Workers"), column=1)
+        status_layout.add_widget(self._occupation_list, column=1)
+
+        # Create a layout for research
+        research_layout = Layout([1, 1], fill_frame=False)
+
+        # ...list of available research
+        self._available_research = ListBox(
+            10,
+            [],
+        )
+
+        self.add_layout(research_layout)
+        research_layout.add_widget(Divider(), column=0)
+        research_layout.add_widget(Label("Available Research"), column=0)
+        research_layout.add_widget(self._available_research, column=0)
+        research_layout.add_widget(Divider(), column=1)
+
+        # Create a layout for help text at the bottom
+        help_layout = Layout([1], fill_frame=True)
+        self.add_layout(help_layout)
+        help_layout.add_widget(Divider())
+
+        # ...the help widget itself
+        self._help = Label("Some help text")
+        help_layout.add_widget(self._help)
 
         self.fix()
 
