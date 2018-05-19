@@ -12,7 +12,9 @@ technology:
     - wood
     - stone
 
+  unlocked_research: []
+
   research_accrued: {}
 
 workers:
-  gatherer: 1
+  gatherer: 10

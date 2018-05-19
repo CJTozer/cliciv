@@ -8,7 +8,7 @@ woodcutter:
   produces:
     wood: 0.5
 
-woodcutter-with-axe:
+woodcutter-stone-axe:
   needs:
     food: 1
     stone: 0.1
