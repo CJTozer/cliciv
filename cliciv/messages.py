@@ -47,10 +47,15 @@ class TechnologyNewState(ActorMessage):
         self.new_state = new_state
 
 
-class TechProduced(ActorMessage):
+class TechnologyProduced(ActorMessage):
     def __init__(self, area, amount=1):
         self.area = area
         self.amount = amount
+
+
+class TechnologyResearched(ActorMessage):
+    def __init__(self, research_id):
+        self.research_id = research_id
 
 
 class WorkersNewState(ActorMessage):

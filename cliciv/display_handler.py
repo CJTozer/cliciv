@@ -150,6 +150,7 @@ class MainDisplay(Frame):
     def process_event(self, event):
         # Do the key handling for this Frame.
         if isinstance(event, KeyboardEvent):
+            logger.debug("Keyboard event: {}".format(event.key_code))
             if event.key_code in [Screen.ctrl("c")]:
                 raise StopApplication("User quit")
             elif event.key_code == ord("+"):
@@ -165,6 +166,11 @@ class MainDisplay(Frame):
                         CommandType.OCCUPATIONS,
                         self._occupation_list.value,
                         -1
+                    )
+            elif event.key_code in (ord("r"), ord("R")):
+                if self._available_research.value:
+                    self._dh.command_handler.research(
+                        self._available_research.value,
                     )
 
         # Force a refresh for responsive UI

@@ -3,7 +3,7 @@ from typing import List
 
 from thespian.actors import Actor, ActorExitRequest
 
-from cliciv.messages import RegisterForUpdates, TechnologyNewState, InitialState, TechProduced
+from cliciv.messages import RegisterForUpdates, TechnologyNewState, InitialState, TechnologyProduced
 from cliciv.utils.data import dict_from_data
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class TechnologyManager(Actor):
             if sender not in self.registered:
                 self.registered.append(sender)
             self.send(sender, TechnologyNewState(self.technology_state))
-        elif isinstance(msg, TechProduced):
+        elif isinstance(msg, TechnologyProduced):
             old_amount = self.technology_state.research_accrued.get(msg.area, 0)
             self.technology_state.research_accrued[msg.area] = old_amount + msg.amount
             self.check_for_unlocked_tech()

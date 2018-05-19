@@ -2,6 +2,12 @@ gatherer:
   produces:
     food: 0.5
 
+gatherer-basket:
+  needs:
+    wood: 0.1
+  produces:
+    food: 0.75
+
 woodcutter:
   needs:
     food: 1

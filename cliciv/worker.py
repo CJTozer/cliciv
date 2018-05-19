@@ -7,7 +7,7 @@ import yaml
 from thespian.actors import Actor, ActorExitRequest, WakeupMessage
 
 from cliciv.messages import ResourcesRequest, Start, ResourcesRequestGranted, ResourcesRequestDenied, ResourcesProduced, \
-    WorkerProfile, TechProduced
+    WorkerProfile, TechnologyProduced
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager
 from cliciv.utils.data import dict_from_data
@@ -118,4 +118,4 @@ class Worker(Actor):
 
         # Chance of generating some useful insight into their job
         if random.random() < GameParameters.CHANCE_OF_TECH:
-            self.send(self.technology_manager, TechProduced(self._profile.occupation))
+            self.send(self.technology_manager, TechnologyProduced(self._profile.occupation))
