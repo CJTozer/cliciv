@@ -4,7 +4,7 @@ from typing import List, Dict
 from thespian.actors import Actor, ActorExitRequest
 
 from cliciv.messages import ResourcesNewState, ResourcesRequest, ResourcesRequestGranted, ResourcesRequestDenied, \
-    RegisterForUpdates, ResourcesProduced
+    RegisterForUpdates, ResourcesProduced, InitialState
 
 logger = logging.getLogger(__name__)
 
@@ -12,13 +12,15 @@ logger = logging.getLogger(__name__)
 class ResourceManager(Actor):
     def __init__(self):
         self.registered: List[str] = []
-        self.resource_state = ResourceState()
+        self.resource_state = None
         super(ResourceManager, self).__init__()
 
     def receiveMessage(self, msg, sender: str):
         logger.debug("{}/{}".format(msg, self))
         if isinstance(msg, ActorExitRequest):
             pass
+        elif isinstance(msg, InitialState):
+            self.resource_state = ResourceState(msg.state['resources'])
         elif isinstance(msg, RegisterForUpdates):
             # `ActorAddress` can't be hashed, so can't just use set() here
             if sender not in self.registered:
@@ -42,14 +44,8 @@ class ResourceManager(Actor):
 
 
 class ResourceState(object):
-    def __init__(self):
-        self.resources = {
-            "food": 100.0,
-            "water": 100.0,
-            "wood": 100.0,
-            "stone": 100.0,
-            "animals": 5.0
-        }
+    def __init__(self, initial_resources):
+        self.resources = initial_resources
 
     def satisfy(self, requested: Dict[str, float]) -> bool:
         if not requested or all([

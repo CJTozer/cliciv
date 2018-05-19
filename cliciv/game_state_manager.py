@@ -51,6 +51,7 @@ class GameStateManager(Actor):
         new_game_state = dict_from_data('new_game_state')
         self.send(self.resources_manager, InitialState(new_game_state))
         self.send(self.technology_manager, InitialState(new_game_state))
+        self.send(self.worker_manager, InitialState(new_game_state))
 
         self.send(self.resources_manager, RegisterForUpdates())
         self.send(self.technology_manager, RegisterForUpdates())
