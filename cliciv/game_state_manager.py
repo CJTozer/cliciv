@@ -7,6 +7,7 @@ from cliciv.messages import ResourcesNewState, TechnologyNewState, WorkersNewSta
     GameStateRequest, GameStateUnavailable, InitialState
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager
+from cliciv.utils.data import dict_from_data
 from cliciv.worker_manager import WorkerManager
 
 
@@ -46,12 +47,8 @@ class GameStateManager(Actor):
         self.technology_manager = self.createActor(TechnologyManager, globalName="technology_manager")
         self.worker_manager = self.createActor(WorkerManager, globalName="worker_manager")
 
-        new_game_state = {
-            'technology': {
-                'unlocked_occupations': ['gatherer', 'woodcutter'],
-                'unlocked_materials': ['food', 'wood'],
-            }
-        }
+        # Always starting from a new game for now
+        new_game_state = dict_from_data('new_game_state')
         self.send(self.technology_manager, InitialState(new_game_state))
 
         self.send(self.resources_manager, RegisterForUpdates())

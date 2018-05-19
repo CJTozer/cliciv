@@ -1,0 +1,13 @@
+resources:
+  food: 50
+
+technology:
+  unlocked_occupations:
+    - gatherer
+    - woodcutter
+    - builder
+    - hunter
+
+  unlocked_materials:
+    - food
+    - wood

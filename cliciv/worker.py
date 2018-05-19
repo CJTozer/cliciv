@@ -9,6 +9,7 @@ from cliciv.messages import ResourcesRequest, Start, ResourcesRequestGranted, Re
     WorkerProfile
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager
+from cliciv.utils.data import dict_from_data
 
 logger = logging.getLogger(__name__)
 
@@ -28,17 +29,12 @@ class Profiles(object, metaclass=_ProfileDictType):
     """
     _DICT = {}
     ready = False
-    OCCUPATION_DATA_FILE = os.path.join(
-        os.path.dirname(__file__),
-        'data',
-        'occupations.yaml')
 
     @staticmethod
     def load():
-        with open(Profiles.OCCUPATION_DATA_FILE) as f:
-            for k, p in yaml.load(f).items():
-                logger.debug("Creating profile '{}' with data: {}".format(k, p))
-                Profiles._DICT[k] = Profile(**(p or {}))
+        for k, p in dict_from_data('occupations').items():
+            logger.debug("Creating profile '{}' with data: {}".format(k, p))
+            Profiles._DICT[k] = Profile(**(p or {}))
 
         Profiles.ready = True
 
