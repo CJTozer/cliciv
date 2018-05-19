@@ -41,7 +41,8 @@ class MainDisplay(Frame):
 
         # Internal state required for doing periodic updates
         self._last_frame = 0
-        self._dh = display_handler
+        self._dh: DisplayHandler = display_handler
+        self._game_data: GameData = None
 
         # Create the resources view layout...
         status_layout = Layout([1, 1], fill_frame=False)
@@ -74,6 +75,7 @@ class MainDisplay(Frame):
         self._available_research = ListBox(
             10,
             [],
+            on_change=self._on_research_selected
         )
 
         self.add_layout(research_layout)
@@ -102,36 +104,43 @@ class MainDisplay(Frame):
             self._last_frame = frame_no
 
             # Get up-to-date data
-            game_data: GameData = self._dh.new_state_callback()
+            self._game_data = self._dh.new_state_callback()
 
             # Resources list
             resource_data = [
                 ([resource, "{:.2f}".format(amount)], resource)
-                for resource, amount in game_data.visible_resources.items()
+                for resource, amount in self._game_data.visible_resources.items()
             ]
             self._resources_list.disabled = True
             self._resources_list.options = resource_data
 
             # Occupation list
-            last_occupation_selection = self._occupation_list.value
-            last_occupation_start_line = self._occupation_list.start_line
+            last_selection = self._occupation_list.value
             occupation_data = [
                 ([occupation, "{}".format(number)], occupation)
-                for occupation, number in game_data.visible_occupations.items()
+                for occupation, number in self._game_data.visible_occupations.items()
             ]
             self._occupation_list.options = occupation_data
-            self._occupation_list.value = last_occupation_selection
-            self._occupation_list.start_line = last_occupation_start_line
+            self._occupation_list.value = last_selection
 
             # Research available list
+            last_selection = self._available_research.value
             research_available = [
-                (r, 1)
-                for r in game_data.technology.unlocked_research
+                (info['name'], key)
+                for key, info in self._game_data.technology.unlocked_research.items()
             ]
             self._available_research.options = research_available
+            self._available_research.value = last_selection
 
         # Now redraw as normal
         super(MainDisplay, self)._update(frame_no)
+
+    def _on_research_selected(self):
+        research_id = self._available_research.value
+        if not research_id:
+            return
+        research_info = self._game_data.technology.unlocked_research[research_id]
+        self._help.text = research_info.get('help', 'No help available for research item {}'.format(research_id))
 
     @property
     def frame_update_count(self):

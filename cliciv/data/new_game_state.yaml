@@ -12,7 +12,7 @@ technology:
     - wood
     - stone
 
-  unlocked_research: []
+  unlocked_research: {}
 
   research_accrued: {}
 

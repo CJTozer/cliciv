@@ -39,13 +39,13 @@ class TechnologyManager(Actor):
             self.send(r, TechnologyNewState(self.technology_state))
 
     def check_for_unlocked_tech(self):
-        unlocked_research = []
+        unlocked_research = {}
         for tech, tech_info in self.tech_tree.items():
             if self.technology_state.satisfies(tech_info['requires']):
-                unlocked_research.append(tech)
-        if set(unlocked_research) != set(self.technology_state.unlocked_research):
+                unlocked_research[tech] = tech_info
+        if set(unlocked_research.keys()) != set(self.technology_state.unlocked_research.keys()):
             logger.info("New research unlocked: {}".format(
-                [t for t in unlocked_research if t not in self.technology_state.unlocked_research]
+                [t for t in unlocked_research.keys() if t not in self.technology_state.unlocked_research]
             ))
             self.technology_state.unlocked_research = unlocked_research
             self.notify_all()

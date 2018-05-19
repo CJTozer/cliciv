@@ -1,9 +1,21 @@
-stone-axes:
-  name: stone axes
+basket-weaving:
+  name: basket weaving
+  help: help text for basket weaving
   requires:
     research_accrued:
-      woodcutter: 10
-      quarryman: 5
+      gatherer: 5
+  produces:
+    occupation-replace:
+      old: gatherer
+      new: gatherer-basket
+
+stone-axes:
+  name: stone axes
+  help: help text for stone axes
+  requires:
+    research_accrued:
+      woodcutter: 2
+      quarryman: 1
   produces:
     occupation-replace:
       old: woodcutter
