@@ -3,7 +3,8 @@ from typing import List
 
 from thespian.actors import Actor, ActorExitRequest
 
-from cliciv.messages import RegisterForUpdates, TechnologyNewState, InitialState, TechnologyProduced
+from cliciv.messages import RegisterForUpdates, TechnologyNewState, InitialState, TechnologyProduced, \
+    TechnologyResearched
 from cliciv.utils.data import dict_from_data
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,9 @@ class TechnologyManager(Actor):
             old_amount = self.technology_state.research_accrued.get(msg.area, 0)
             self.technology_state.research_accrued[msg.area] = old_amount + msg.amount
             self.check_for_unlocked_tech()
+        elif isinstance(msg, TechnologyResearched):
+            self.technology_state.set_researched(msg.research_id)
+            self.notify_all()
         else:
             logger.error("Ignoring unexpected message: {}".format(msg))
 
@@ -41,6 +45,8 @@ class TechnologyManager(Actor):
     def check_for_unlocked_tech(self):
         unlocked_research = {}
         for tech, tech_info in self.tech_tree.items():
+            if tech in self.technology_state.completed_research:
+                continue
             if self.technology_state.satisfies(tech_info['requires']):
                 unlocked_research[tech] = tech_info
         if set(unlocked_research.keys()) != set(self.technology_state.unlocked_research.keys()):
@@ -61,3 +67,7 @@ class TechnologyState(object):
             self.research_accrued.get(k, 0) >= v
             for k, v in required['research_accrued'].items()
         ])
+
+    def set_researched(self, research_id):
+        research_info = self.unlocked_research.pop(research_id)
+        self.completed_research[research_id] = research_info
