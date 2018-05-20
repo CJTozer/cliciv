@@ -75,5 +75,9 @@ class TechnologyState(object):
         logger.info("Marking {} as researched".format(research_id))
         researched_technology = self.unlocked_research.pop(research_id)
         self.completed_research[research_id] = researched_technology
+
         for occupation in researched_technology['produces'].get('unlock-occupation', []):
             self.unlocked_occupations.append(occupation)
+
+        for resource in researched_technology['produces'].get('unlock-resource', []):
+            self.unlocked_resources.append(resource)
