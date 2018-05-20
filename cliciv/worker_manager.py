@@ -131,6 +131,8 @@ class WorkerManager(Actor):
                         self.send(worker, WorkerProfile(Profiles[occupation]))
 
     def _assign_builders(self, building_id, increment):
+        # TODO - don't allow more workers than allowed...
+
         if increment == 0:
             # Already have the correct number of builders
             return
@@ -158,7 +160,7 @@ class WorkerManager(Actor):
 
         else:
             # Fewer builders required
-            if len(self.buildings[building_id]) < -increment:
+            if len(self.buildings.get(building_id, [])) < -increment:
                 # Cannot handle the request
                 logger.warning("Cannot handle request for {} fewer builders, only {} building.".format(
                     increment, len(self.buildings[building_id])))

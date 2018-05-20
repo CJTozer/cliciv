@@ -38,3 +38,6 @@ buildings:
 
     hut2:
       type: hut
+      builders: 0
+      max_builders: 3
+      building_required: 90

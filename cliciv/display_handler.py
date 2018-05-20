@@ -224,6 +224,12 @@ class MainDisplay(Frame):
                         self._occupation_list.value,
                         -1
                     )
+                elif self._under_construction._has_focus and self._under_construction.value:
+                    self._dh.command_handler.increment(
+                        CommandType.BUILDERS,
+                        self._under_construction.value,
+                        -1
+                    )
             elif event.key_code in (ord("r"), ord("R")):
                 if self._available_research.value:
                     self._dh.command_handler.research(
