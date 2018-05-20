@@ -8,6 +8,7 @@ from asciimatics.widgets import Frame, Layout, Label, MultiColumnListBox, Divide
 
 from cliciv.command_handler import CommandType
 from cliciv.game_data import GameData
+from cliciv.messages import GameStateUnavailable
 
 logger = logging.getLogger(__name__)
 
@@ -109,31 +110,34 @@ class MainDisplay(Frame):
             # Get up-to-date data
             self._game_data = self._dh.new_state_callback()
 
-            # Resources list
-            resource_data = [
-                ([resource, "{:.2f}".format(amount)], resource)
-                for resource, amount in self._game_data.visible_resources.items()
-            ]
-            self._resources_list.disabled = True
-            self._resources_list.options = resource_data
+            if isinstance(self._game_data, GameStateUnavailable):
+                logger.info("Game state not yet available")
+            else:
+                # Resources list
+                resource_data = [
+                    ([resource, "{:.2f}".format(amount)], resource)
+                    for resource, amount in self._game_data.visible_resources.items()
+                ]
+                self._resources_list.disabled = True
+                self._resources_list.options = resource_data
 
-            # Occupation list
-            last_selection = self._occupation_list.value
-            occupation_data = [
-                ([occupation, "{}".format(number)], occupation)
-                for occupation, number in self._game_data.visible_occupations.items()
-            ]
-            self._occupation_list.options = occupation_data
-            self._occupation_list.value = last_selection
+                # Occupation list
+                last_selection = self._occupation_list.value
+                occupation_data = [
+                    ([occupation, "{}".format(number)], occupation)
+                    for occupation, number in self._game_data.visible_occupations.items()
+                ]
+                self._occupation_list.options = occupation_data
+                self._occupation_list.value = last_selection
 
-            # Research available list
-            last_selection = self._available_research.value
-            research_available = [
-                (info['name'], key)
-                for key, info in self._game_data.technology.unlocked_research.items()
-            ]
-            self._available_research.options = research_available
-            self._available_research.value = last_selection
+                # Research available list
+                last_selection = self._available_research.value
+                research_available = [
+                    (info['name'], key)
+                    for key, info in self._game_data.technology.unlocked_research.items()
+                ]
+                self._available_research.options = research_available
+                self._available_research.value = last_selection
 
         # Now redraw as normal
         super(MainDisplay, self)._update(frame_no)

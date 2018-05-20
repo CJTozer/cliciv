@@ -81,3 +81,6 @@ class TechnologyState(object):
 
         for resource in researched_technology['produces'].get('unlock-resource', []):
             self.unlocked_resources.append(resource)
+
+        for building in researched_technology['produces'].get('unlock-building', []):
+            self.unlocked_buildings.append(building)

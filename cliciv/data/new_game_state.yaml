@@ -12,6 +12,8 @@ technology:
     - wood
     - stone
 
+  unlocked_buildings: []
+
   unlocked_research: {}
 
   completed_research: {}
@@ -19,7 +21,10 @@ technology:
   research_accrued: {}
 
 workers:
-  gatherer: 10
+  gatherer: 4
 
 buildings:
-  hut: 1
+  completed:
+    hut: 2
+
+  in_progress: {}

@@ -74,6 +74,23 @@ class WorkerProfile(ActorMessage):
         self.new_profile = new_profile
 
 
+class BuildingsNewState(ActorMessage):
+    def __init__(self, new_state):
+        self.new_state = new_state
+
+
+class BuilderAssignRequest(ActorMessage):
+    def __init__(self, building, increment):
+        self.building = building
+        self.increment = increment
+
+
+class BuildingIncrement(ActorMessage):
+    def __init__(self, building, building_increment):
+        self.building = building
+        self.building_increment = building_increment
+
+
 class GameStateRequest(ActorMessage):
     pass
 

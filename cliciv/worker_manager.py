@@ -6,7 +6,7 @@ from thespian.actors import Actor, ActorExitRequest
 from cliciv.messages import WorkersNewState, TechnologyNewState, Start, RegisterForUpdates, WorkerChangeRequest, \
     WorkerProfile, InitialState
 from cliciv.resource_manager import ResourceManager
-from cliciv.technology_manager import TechnologyManager
+from cliciv.technology_manager import TechnologyManager, TechnologyState
 from cliciv.worker import WorkerFactory, Profiles
 
 logger = logging.getLogger(__name__)
@@ -18,8 +18,8 @@ class WorkerManager(Actor):
         self.registered = []
         self.resources_manager: Actor = None
         self.technology_manager: Actor = None
-        self.technology_state = None
-        self.worker_state = None
+        self.technology_state: TechnologyState = None
+        self.worker_state: WorkerState = None
         self.worker_factory = None
         self.workers: Dict[str, List[Actor]] = {}
         super(WorkerManager, self).__init__()
