@@ -21,6 +21,6 @@ hunter:
     stone: 0.05
   produces:
     food: 0.25
-    hides: 0.5
+    hides: 0.25
 
 builder:
