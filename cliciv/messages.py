@@ -80,21 +80,21 @@ class BuildingsNewState(ActorMessage):
 
 
 class BuilderAssignRequest(ActorMessage):
-    def __init__(self, building, increment):
-        self.building = building
+    def __init__(self, building_id, increment):
+        self.building_id = building_id
         self.increment = increment
 
 
-class BuildingIncrement(ActorMessage):
-    def __init__(self, building, building_increment):
-        self.building = building
-        self.building_increment = building_increment
-
-
-class BuilderAssign(ActorMessage):
-    def __init__(self, building_id, num):
+class BuildersAssigned(ActorMessage):
+    def __init__(self, building_id, num_builders):
         self.building_id = building_id
-        self.num = num
+        self.num_builders = num_builders
+
+
+class BuildingIncrement(ActorMessage):
+    def __init__(self, building_id, building_increment):
+        self.building_id = building_id
+        self.building_increment = building_increment
 
 
 class BuildTarget(ActorMessage):

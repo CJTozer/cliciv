@@ -205,14 +205,20 @@ class MainDisplay(Frame):
             if event.key_code in [Screen.ctrl("c")]:
                 raise StopApplication("User quit")
             elif event.key_code == ord("+"):
-                if self._occupation_list.value:
+                if self._occupation_list._has_focus and self._occupation_list.value:
                     self._dh.command_handler.increment(
                         CommandType.OCCUPATIONS,
                         self._occupation_list.value,
                         1
                     )
+                elif self._under_construction._has_focus and self._under_construction.value:
+                    self._dh.command_handler.increment(
+                        CommandType.BUILDERS,
+                        self._under_construction.value,
+                        1
+                    )
             elif event.key_code == ord("-"):
-                if self._occupation_list.value:
+                if self._occupation_list._has_focus and self._occupation_list.value:
                     self._dh.command_handler.increment(
                         CommandType.OCCUPATIONS,
                         self._occupation_list.value,

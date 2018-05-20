@@ -3,7 +3,7 @@ import logging
 from thespian.actors import Actor
 
 from cliciv.messages import InitialState, RegisterForUpdates, TechnologyNewState, BuildingsNewState, \
-    BuilderAssignRequest, BuildingIncrement
+    BuildingIncrement, BuildersAssigned
 
 logger = logging.getLogger(__name__)
 
@@ -32,10 +32,11 @@ class BuildingManager(Actor):
         elif isinstance(msg, TechnologyNewState):
             self._handle_tech_update(msg.new_state)
             self.building_state = msg.new_state
-        elif isinstance(msg, BuilderAssignRequest):
-            pass
+        elif isinstance(msg, BuildersAssigned):
+            self.building_state.under_construction[msg.building_id]['builders'] = msg.num_builders
+            notify_change = True
         elif isinstance(msg, BuildingIncrement):
-            notify_change = self._handle_building_increment(msg.building, msg.building_increment)
+            notify_change = self._handle_building_increment(msg.building_id, msg.building_increment)
         else:
             logger.error("Ignoring unexpected message: {}".format(msg))
 

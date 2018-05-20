@@ -1,7 +1,7 @@
 import logging
 from enum import Enum, auto
 
-from cliciv.messages import WorkerChangeRequest, TechnologyResearched
+from cliciv.messages import WorkerChangeRequest, TechnologyResearched, BuilderAssignRequest
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +17,12 @@ class CommandHandler(object):
                 self._coord.worker_manager,
                 msg
             )
+        elif command_type == CommandType.BUILDERS:
+            msg = BuilderAssignRequest(arg, amount)
+            self._coord.actor_system.tell(
+                self._coord.worker_manager,
+                msg
+            )
 
     def research(self, research_id):
         self._coord.actor_system.tell(
@@ -28,3 +34,4 @@ class CommandHandler(object):
 class CommandType(Enum):
     OCCUPATIONS = auto()
     RESEARCH = auto()
+    BUILDERS = auto()

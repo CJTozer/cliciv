@@ -3,8 +3,9 @@ from typing import List, Dict
 
 from thespian.actors import Actor, ActorExitRequest
 
+from cliciv.building_manager import BuildingManager
 from cliciv.messages import WorkersNewState, TechnologyNewState, Start, RegisterForUpdates, WorkerChangeRequest, \
-    WorkerProfile, InitialState, BuilderAssign, BuildTarget
+    WorkerProfile, InitialState, BuildTarget, BuilderAssignRequest, BuildersAssigned
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager, TechnologyState
 from cliciv.worker import WorkerFactory, Profiles
@@ -22,6 +23,7 @@ class WorkerManager(Actor):
         self.worker_state: WorkerState = None
         self.worker_factory = None
         self.workers: Dict[str, List[Actor]] = {}
+        self.building_manager: Actor = None
         self.buildings = {}
         super(WorkerManager, self).__init__()
 
@@ -68,8 +70,8 @@ class WorkerManager(Actor):
                         self._assign_worker(worker, 'gatherer')
 
                 notify_change = True
-        elif isinstance(msg, BuilderAssign):
-            self._assign_builders(msg.building_id, msg.num)
+        elif isinstance(msg, BuilderAssignRequest):
+            self._assign_builders(msg.building_id, msg.increment)
         else:
             logger.error("Ignoring unexpected message: {}".format(msg))
 
@@ -82,6 +84,7 @@ class WorkerManager(Actor):
     def start(self):
         self.resources_manager = self.createActor(ResourceManager, globalName="resource_manager")
         self.technology_manager = self.createActor(TechnologyManager, globalName="technology_manager")
+        self.building_manager = self.createActor(BuildingManager, globalName="building_manager")
         self.worker_factory = WorkerFactory(self)
         self.workers = self.worker_factory.from_config(
             self.worker_state.occupations
@@ -127,13 +130,12 @@ class WorkerManager(Actor):
                     for worker in self.workers[occupation]:
                         self.send(worker, WorkerProfile(Profiles[occupation]))
 
-    def _assign_builders(self, building_id, num):
-        change_required = num - len(self.buildings.get(building_id, []))
-        if change_required == 0:
+    def _assign_builders(self, building_id, increment):
+        if increment == 0:
             # Already have the correct number of builders
             return
 
-        if change_required > 0:
+        if increment > 0:
             # More builders required
             idle_builders = [
                 b for b in self.workers['builder']
@@ -142,15 +144,33 @@ class WorkerManager(Actor):
                     for _, active_builders in self.buildings.items()
                 ])
             ]
-            for _ in range(change_required):
+            if len(idle_builders) < increment:
+                # Cannot handle the request
+                logger.warning("Cannot handle request for {} more builders, only {} idle.".format(
+                    increment, len(idle_builders)))
+                return
+            if building_id not in self.buildings:
+                self.buildings[building_id] = []
+            for _ in range(increment):
                 builder = idle_builders.pop()
+                self.buildings[building_id].append(builder)
                 self.send(builder, BuildTarget(building_id))
 
         else:
             # Fewer builders required
-            for _ in range(-change_required):
+            if len(self.buildings[building_id]) < -increment:
+                # Cannot handle the request
+                logger.warning("Cannot handle request for {} fewer builders, only {} building.".format(
+                    increment, len(self.buildings[building_id])))
+                return
+            for _ in range(-increment):
                 builder = self.buildings[building_id].pop()
                 self.send(builder, BuildTarget(None))
+
+        # Something has changed, notify the building_manager.
+        logger.info("self.buildings: {}".format(self.buildings))
+        new_num = len(self.buildings[building_id])
+        self.send(self.building_manager, BuildersAssigned(building_id, new_num))
 
 
 class WorkerState(object):

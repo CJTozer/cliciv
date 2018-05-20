@@ -4,6 +4,7 @@ from typing import Dict, List
 
 from thespian.actors import Actor, ActorExitRequest, WakeupMessage
 
+from cliciv.building_manager import BuildingManager
 from cliciv.messages import ResourcesRequest, Start, ResourcesRequestGranted, ResourcesRequestDenied, ResourcesProduced, \
     WorkerProfile, TechnologyProduced, BuildTarget, BuildingIncrement
 from cliciv.resource_manager import ResourceManager
@@ -95,6 +96,7 @@ class Worker(Actor):
     def __init__(self):
         self.resources_manager: Actor = None
         self.technology_manager: Actor = None
+        self.building_manager: Actor = None
         self._profile = None
         self._epoch = 0  # Track to ensure stale wake-ups don't generate extra resources
         self._build_target = None  # Only specified for non-idle builders
@@ -111,6 +113,7 @@ class Worker(Actor):
         elif isinstance(msg, Start) or (isinstance(msg, WakeupMessage) and msg.payload == self._epoch):
             self.resources_manager = self.createActor(ResourceManager, globalName="resource_manager")
             self.technology_manager = self.createActor(TechnologyManager, globalName="technology_manager")
+            self.building_manager = self.createActor(BuildingManager, globalName="building_manager")
             self.start_work()
         elif isinstance(msg, WakeupMessage):
             logger.debug("Stale wakeup message, must have new profile")
@@ -146,7 +149,7 @@ class Worker(Actor):
                 return
             else:
                 self.send(self.building_manager,
-                          BuildingIncrement(self._build_target, self.produces['building-increment']))
+                          BuildingIncrement(self._build_target, self._profile.produces['building-increment']))
 
         self.send(self.resources_manager, ResourcesProduced(self._profile.produces))
 

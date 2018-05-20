@@ -31,7 +31,7 @@ buildings:
   under_construction:
     hut1:
       type: hut
-      builders: 1
+      builders: 0
       max_builders: 3
       building_done: 40
       building_required: 90

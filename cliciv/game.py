@@ -3,6 +3,7 @@ from typing import List
 
 from thespian.actors import ActorSystem, ActorExitRequest, Actor
 
+from cliciv.building_manager import BuildingManager
 from cliciv.command_handler import CommandHandler
 from cliciv.display_handler import DisplayHandler
 from cliciv.game_data import GameData
@@ -37,11 +38,13 @@ class Coordinator():
         self.technology_manager: Actor = self.actor_system.createActor(TechnologyManager, globalName="technology_manager")
         self.game_state_manager: Actor = self.actor_system.createActor(GameStateManager, globalName="game_state_manager")
         self.worker_manager: Actor = self.actor_system.createActor(WorkerManager, globalName="worker_manager")
+        self.building_manager: Actor = self.actor_system.createActor(BuildingManager, globalName="building_manager")
         self.actors: List[Actor] = [
             self.resource_manager,
             self.technology_manager,
             self.game_state_manager,
             self.worker_manager,
+            self.building_manager,
         ]
 
     def start_game(self):
