@@ -15,4 +15,12 @@ quarryman:
   produces:
     stone: 0.2
 
+hunter:
+  needs:
+    wood: 0.1
+    stone: 0.05
+  produces:
+    food: 0.25
+    hides: 0.5
+
 builder:

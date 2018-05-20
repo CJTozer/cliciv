@@ -32,12 +32,12 @@ hunting:
   help: After being chased by a pack of wolves, your gathers wonder about taking the offensive.
   requires:
     research_accrued:
-      gatherer: 50
-    produces:
-      unlock-occupation:
-        - hunter
-      unlock-resource:
-        - hides
+      gatherer: 5
+  produces:
+    unlock-occupation:
+      - hunter
+    unlock-resource:
+      - hides
 
 house-building:
   name: building
