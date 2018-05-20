@@ -23,18 +23,8 @@ class Game(object):
         self.coordinator = Coordinator()
 
     def play(self):
-        self._set_up_logging()
         self.coordinator.start_game()
         self.coordinator.end_game()
-
-    def _set_up_logging(self):
-        # root_logger = logging.getLogger()
-        # fh = logging.FileHandler('spam.log')
-        # fh.setLevel(logging.DEBUG)
-        # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        # fh.setFormatter(formatter)
-        # root_logger.addHandler(fh)
-        pass
 
 
 class Coordinator():

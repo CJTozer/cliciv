@@ -54,7 +54,7 @@ class MainDisplay(Frame):
             ["<12", ">10"],
             [],
         )
-        self._is_tab_stop = False
+        self._resources_list.disabled = True
 
         # ...then the occupation list
         self._occupation_list = MultiColumnListBox(
@@ -76,14 +76,24 @@ class MainDisplay(Frame):
         self._available_research = ListBox(
             10,
             [],
-            on_change=self._on_research_selected
+            on_change=self._on_research_selected,
         )
+
+        # ...list of buildings
+        self._buildings_list = MultiColumnListBox(
+            10,  # Height
+            ["<12", ">10"],
+            [],
+        )
+        self._buildings_list.disabled = True
 
         self.add_layout(research_layout)
         research_layout.add_widget(Divider(), column=0)
         research_layout.add_widget(Label("Available Research"), column=0)
         research_layout.add_widget(self._available_research, column=0)
         research_layout.add_widget(Divider(), column=1)
+        research_layout.add_widget(Label("Buildings"), column=1)
+        research_layout.add_widget(self._buildings_list, column=1)
 
         # Create a layout for help text at the bottom
         help_layout = Layout([1], fill_frame=True)
@@ -93,7 +103,7 @@ class MainDisplay(Frame):
         # ...the help widget itself
         self._help = TextBox(height=3, label="Help: ", as_string=True)
         self._help.value = "TEST"
-        # self._help.custom_colour = 'title'
+        self._help.disabled = True
         help_layout.add_widget(self._help)
         help_layout.add_widget(Divider())
 
@@ -118,7 +128,6 @@ class MainDisplay(Frame):
                     ([resource, "{:.2f}".format(amount)], resource)
                     for resource, amount in self._game_data.visible_resources.items()
                 ]
-                self._resources_list.disabled = True
                 self._resources_list.options = resource_data
 
                 # Occupation list
@@ -138,6 +147,16 @@ class MainDisplay(Frame):
                 ]
                 self._available_research.options = research_available
                 self._available_research.value = last_selection
+
+                # Bulidings list
+                last_selection = self._buildings_list.value
+                buildings = [
+                    ([key, str(num)], key)
+                    for key, num in self._game_data.buildings.completed.items()
+                ]
+                self._buildings_list.options = buildings
+                self._buildings_list.value = last_selection
+
 
         # Now redraw as normal
         super(MainDisplay, self)._update(frame_no)

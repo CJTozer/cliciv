@@ -1,4 +1,5 @@
 hut:
+  name: hut
   building_time: 10
   max_builders: 3
   needs:
