@@ -1,0 +1,7 @@
+hut:
+  building_time: 10
+  max_builders: 3
+  needs:
+    wood: 50
+  produces:
+    housing: 2
