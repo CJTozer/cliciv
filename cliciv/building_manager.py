@@ -35,7 +35,7 @@ class BuildingManager(Actor):
         elif isinstance(msg, BuilderAssignRequest):
             pass
         elif isinstance(msg, BuildingIncrement):
-            pass
+            notify_change = self._handle_building_increment(msg.building, msg.building_increment)
         else:
             logger.error("Ignoring unexpected message: {}".format(msg))
 
@@ -45,6 +45,18 @@ class BuildingManager(Actor):
 
     def _handle_tech_update(self, new_state):
         pass
+
+    def _handle_building_increment(self, building_id, increment):
+        info = self.building_state.under_construction[building_id]
+        info['building_done'] += increment
+        if info['building_done'] >= info['building_required']:
+            # Construction complete!
+            self.building_state.under_construction.pop(building_id)
+            old_val = self.building_state.completed.get(info['type'], 0)
+            self.building_state.completed[info['type']] = old_val + 1
+            return True
+
+        return False
 
 
 class BuildingState(object):

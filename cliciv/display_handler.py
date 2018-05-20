@@ -83,9 +83,9 @@ class MainDisplay(Frame):
         # ...list of current construction
         self._under_construction = MultiColumnListBox(
             10,  # Height
-            ["<12", "<7", "<0"],
+            ["<12", "<9", "<0"],
             [],
-            titles=["Building", "Builders", "Completion"],
+            titles=["Building", "Builders", "Progress"],
         )
 
         self.add_layout(buildings_layout)
@@ -232,10 +232,12 @@ class MainDisplay(Frame):
 
     def _under_construction_cols_from_info(self, info):
         return [
-             info['name'],  # The name of the building
-             "{}/{}".format(  # The workers building it
-                 info.get('builders', '0'),
-                 info.get('max_builders', '?')
-             ),
-             info.get('completion', '??%')  # How complete the building is.  TODO make this a progress bar.
+            info['type'],  # The type of building
+            "{}/{}".format(  # The workers building it
+                info.get('builders', '0'),
+                info.get('max_builders', '?')
+            ),
+            "{:2.0f}%".format(  # How complete the building is.  TODO make this a progress bar.
+                100 * info.get('building_done', 0) / info.get('building_required', 100)
+            ),
         ]

@@ -30,9 +30,11 @@ buildings:
 #  under_construction: {}
   under_construction:
     hut1:
-      name: hut
+      type: hut
       builders: 1
       max_builders: 3
-      completion: 40%
+      building_done: 40
+      building_required: 90
+
     hut2:
-      name: hut
+      type: hut
