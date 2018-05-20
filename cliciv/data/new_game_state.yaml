@@ -27,4 +27,12 @@ buildings:
   completed:
     hut: 2
 
-  in_progress: {}
+#  under_construction: {}
+  under_construction:
+    hut1:
+      name: hut
+      builders: 1
+      max_builders: 3
+      completion: 40%
+    hut2:
+      name: hut

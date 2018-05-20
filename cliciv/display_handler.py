@@ -69,6 +69,33 @@ class MainDisplay(Frame):
         status_layout.add_widget(Label("Workers"), column=1)
         status_layout.add_widget(self._occupation_list, column=1)
 
+        # Create a layout for buildings
+        buildings_layout = Layout([1, 1], fill_frame=False)
+
+        # ...list of buildings
+        self._buildings_list = MultiColumnListBox(
+            10,  # Height
+            ["<12", ">10"],
+            [],
+        )
+        self._buildings_list.disabled = True
+
+        # ...list of current construction
+        self._under_construction = MultiColumnListBox(
+            10,  # Height
+            ["<12", "<7", "<0"],
+            [],
+            titles=["Building", "Builders", "Completion"],
+        )
+
+        self.add_layout(buildings_layout)
+        buildings_layout.add_widget(Divider(), column=0)
+        buildings_layout.add_widget(Label("Buildings"), column=0)
+        buildings_layout.add_widget(self._buildings_list, column=0)
+        buildings_layout.add_widget(Divider(), column=1)
+        buildings_layout.add_widget(Label("Under Construction"), column=1)
+        buildings_layout.add_widget(self._under_construction, column=1)
+
         # Create a layout for research
         research_layout = Layout([1, 1], fill_frame=False)
 
@@ -79,21 +106,11 @@ class MainDisplay(Frame):
             on_change=self._on_research_selected,
         )
 
-        # ...list of buildings
-        self._buildings_list = MultiColumnListBox(
-            10,  # Height
-            ["<12", ">10"],
-            [],
-        )
-        self._buildings_list.disabled = True
-
         self.add_layout(research_layout)
         research_layout.add_widget(Divider(), column=0)
         research_layout.add_widget(Label("Available Research"), column=0)
         research_layout.add_widget(self._available_research, column=0)
         research_layout.add_widget(Divider(), column=1)
-        research_layout.add_widget(Label("Buildings"), column=1)
-        research_layout.add_widget(self._buildings_list, column=1)
 
         # Create a layout for help text at the bottom
         help_layout = Layout([1], fill_frame=True)
@@ -139,15 +156,6 @@ class MainDisplay(Frame):
                 self._occupation_list.options = occupation_data
                 self._occupation_list.value = last_selection
 
-                # Research available list
-                last_selection = self._available_research.value
-                research_available = [
-                    (info['name'], key)
-                    for key, info in self._game_data.technology.unlocked_research.items()
-                ]
-                self._available_research.options = research_available
-                self._available_research.value = last_selection
-
                 # Bulidings list
                 last_selection = self._buildings_list.value
                 buildings = [
@@ -157,6 +165,23 @@ class MainDisplay(Frame):
                 self._buildings_list.options = buildings
                 self._buildings_list.value = last_selection
 
+                # Buildings under construction
+                last_selection = self._under_construction.value
+                under_construction = [
+                    (self._under_construction_cols_from_info(info), key)
+                    for key, info in self._game_data.buildings.under_construction.items()
+                ]
+                self._under_construction.options = under_construction
+                self._under_construction.value = last_selection
+
+                # Research available list
+                last_selection = self._available_research.value
+                research_available = [
+                    (info['name'], key)
+                    for key, info in self._game_data.technology.unlocked_research.items()
+                ]
+                self._available_research.options = research_available
+                self._available_research.value = last_selection
 
         # Now redraw as normal
         super(MainDisplay, self)._update(frame_no)
@@ -204,3 +229,13 @@ class MainDisplay(Frame):
 
         # Now pass on to lower levels for normal handling of the event.
         return super(MainDisplay, self).process_event(event)
+
+    def _under_construction_cols_from_info(self, info):
+        return [
+             info['name'],  # The name of the building
+             "{}/{}".format(  # The workers building it
+                 info.get('builders', '0'),
+                 info.get('max_builders', '?')
+             ),
+             info.get('completion', '??%')  # How complete the building is.  TODO make this a progress bar.
+        ]
