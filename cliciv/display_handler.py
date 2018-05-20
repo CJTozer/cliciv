@@ -4,7 +4,7 @@ from asciimatics.event import KeyboardEvent
 from asciimatics.exceptions import ResizeScreenError, StopApplication
 from asciimatics.scene import Scene
 from asciimatics.screen import Screen
-from asciimatics.widgets import Frame, Layout, Label, MultiColumnListBox, Divider, ListBox
+from asciimatics.widgets import Frame, Layout, Label, MultiColumnListBox, Divider, ListBox, TextBox
 
 from cliciv.command_handler import CommandType
 from cliciv.game_data import GameData
@@ -90,8 +90,11 @@ class MainDisplay(Frame):
         help_layout.add_widget(Divider())
 
         # ...the help widget itself
-        self._help = Label("Some help text")
+        self._help = TextBox(height=3, label="Help: ", as_string=True)
+        self._help.value = "TEST"
+        # self._help.custom_colour = 'title'
         help_layout.add_widget(self._help)
+        help_layout.add_widget(Divider())
 
         self.fix()
 
@@ -140,7 +143,7 @@ class MainDisplay(Frame):
         if not research_id:
             return
         research_info = self._game_data.technology.unlocked_research[research_id]
-        self._help.text = research_info.get('help', 'No help available for research item {}'.format(research_id))
+        self._help.value = research_info.get('help', 'No help available for research item {}'.format(research_id))
 
     @property
     def frame_update_count(self):
