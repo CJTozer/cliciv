@@ -4,7 +4,7 @@ from typing import List, Dict
 from thespian.actors import Actor, ActorExitRequest
 
 from cliciv.messages import WorkersNewState, TechnologyNewState, Start, RegisterForUpdates, WorkerChangeRequest, \
-    WorkerProfile, InitialState
+    WorkerProfile, InitialState, BuilderAssign, BuildTarget
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager, TechnologyState
 from cliciv.worker import WorkerFactory, Profiles
@@ -22,6 +22,7 @@ class WorkerManager(Actor):
         self.worker_state: WorkerState = None
         self.worker_factory = None
         self.workers: Dict[str, List[Actor]] = {}
+        self.buildings = {}
         super(WorkerManager, self).__init__()
 
     def receiveMessage(self, msg, sender: str):
@@ -67,7 +68,8 @@ class WorkerManager(Actor):
                         self._assign_worker(worker, 'gatherer')
 
                 notify_change = True
-
+        elif isinstance(msg, BuilderAssign):
+            self._assign_builders(msg.building_id, msg.num)
         else:
             logger.error("Ignoring unexpected message: {}".format(msg))
 
@@ -84,8 +86,10 @@ class WorkerManager(Actor):
         self.workers = self.worker_factory.from_config(
             self.worker_state.occupations
         )
+
         # Register for tech updates
         self.send(self.technology_manager, RegisterForUpdates())
+
         # Start Workers
         self.start_workers()
 
@@ -122,6 +126,31 @@ class WorkerManager(Actor):
                 for occupation in updated_occupations:
                     for worker in self.workers[occupation]:
                         self.send(worker, WorkerProfile(Profiles[occupation]))
+
+    def _assign_builders(self, building_id, num):
+        change_required = num - len(self.buildings.get(building_id, []))
+        if change_required == 0:
+            # Already have the correct number of builders
+            return
+
+        if change_required > 0:
+            # More builders required
+            idle_builders = [
+                b for b in self.workers['builder']
+                if not any([
+                    b in active_builders
+                    for _, active_builders in self.buildings.items()
+                ])
+            ]
+            for _ in range(change_required):
+                builder = idle_builders.pop()
+                self.send(builder, BuildTarget(building_id))
+
+        else:
+            # Fewer builders required
+            for _ in range(-change_required):
+                builder = self.buildings[building_id].pop()
+                self.send(builder, BuildTarget(None))
 
 
 class WorkerState(object):

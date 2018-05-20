@@ -5,7 +5,7 @@ from typing import Dict, List
 from thespian.actors import Actor, ActorExitRequest, WakeupMessage
 
 from cliciv.messages import ResourcesRequest, Start, ResourcesRequestGranted, ResourcesRequestDenied, ResourcesProduced, \
-    WorkerProfile, TechnologyProduced
+    WorkerProfile, TechnologyProduced, BuildTarget, BuildingIncrement
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager
 from cliciv.utils.data import dict_from_data
@@ -97,6 +97,7 @@ class Worker(Actor):
         self.technology_manager: Actor = None
         self._profile = None
         self._epoch = 0  # Track to ensure stale wake-ups don't generate extra resources
+        self._build_target = None  # Only specified for non-idle builders
         super(Worker, self).__init__()
 
     def receiveMessage(self, msg, sender):
@@ -120,6 +121,10 @@ class Worker(Actor):
         elif isinstance(msg, ResourcesRequestDenied):
             logger.warning("Worker {} request for resources denied".format(self))
             self.wakeupAfter(1, self._epoch)
+        elif isinstance(msg, BuildTarget):
+            if 'building-increment' not in self._profile.produces:
+                logger.error("Received unexpected build target for profile: {}", self._profile)
+            self._build_target = msg.building_id
         else:
             logger.error("Ignoring unexpected message: {}".format(msg))
 
@@ -134,6 +139,14 @@ class Worker(Actor):
         if not self._profile:
             logger.error("Producing output with no profile!")
             return
+
+        if 'building-increment' in self._profile.produces:
+            if not self._build_target:
+                logger.debug("Builder with no target produces nothing")
+                return
+            else:
+                self.send(self.building_manager,
+                          BuildingIncrement(self._build_target, self.produces['building-increment']))
 
         self.send(self.resources_manager, ResourcesProduced(self._profile.produces))
 

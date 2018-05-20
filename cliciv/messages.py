@@ -91,6 +91,17 @@ class BuildingIncrement(ActorMessage):
         self.building_increment = building_increment
 
 
+class BuilderAssign(ActorMessage):
+    def __init__(self, building_id, num):
+        self.building_id = building_id
+        self.num = num
+
+
+class BuildTarget(ActorMessage):
+    def __init__(self, building_id):
+        self.building_id = building_id
+
+
 class GameStateRequest(ActorMessage):
     pass
 
