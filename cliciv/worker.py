@@ -125,8 +125,8 @@ class Worker(Actor):
             logger.warning("Worker {} request for resources denied".format(self))
             self.wakeupAfter(1, self._epoch)
         elif isinstance(msg, BuildTarget):
-            if 'building-increment' not in self._profile.produces:
-                logger.error("Received unexpected build target for profile: {}", self._profile)
+            if 'building-increment' not in self._profile.produces and msg.building_id:
+                logger.error("Received unexpected build target for profile: {}".format(self._profile))
             self._build_target = msg.building_id
         else:
             logger.error("Ignoring unexpected message: {}".format(msg))

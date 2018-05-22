@@ -54,6 +54,11 @@ class WorkerManager(Actor):
             self._handle_tech_update(msg.new_state)
             self.technology_state = msg.new_state
         elif isinstance(msg, WorkerChangeRequest):
+            # Builders are not handled this way
+            if msg.worker_type == 'builder':
+                logger.debug("Ignoring message {} to change workers into builders".format(msg))
+                return
+
             new_gatherer_count = len(self.workers.get('gatherer', [])) - msg.increment
             new_type_count = len(self.workers.get(msg.worker_type, [])) + msg.increment
             if new_gatherer_count >= 0 and new_type_count >= 0:
@@ -71,7 +76,23 @@ class WorkerManager(Actor):
 
                 notify_change = True
         elif isinstance(msg, BuilderAssignRequest):
-            self._assign_builders(msg.building_id, msg.increment)
+            new_gatherer_count = len(self.workers.get('gatherer', [])) - msg.increment
+            new_builder_count = len(self.workers.get('builder', [])) + msg.increment
+            if new_gatherer_count >= 0 and new_builder_count >= 0:
+                # The transition seems reasonable
+                if msg.increment > 0:
+                    # Move workers from gathering to a new job
+                    for _ in range(msg.increment):
+                        worker = self.workers['gatherer'].pop()
+                        self._assign_worker(worker, 'builder')
+                else:
+                    # Move workers back to gathering
+                    for _ in range(-msg.increment):
+                        worker = self.workers['builder'].pop()
+                        self._assign_worker(worker, 'gatherer')
+
+                self._assign_builders(msg.building_id, msg.increment)
+                notify_change = True
         else:
             logger.error("Ignoring unexpected message: {}".format(msg))
 
