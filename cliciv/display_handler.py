@@ -33,6 +33,8 @@ class DisplayHandler(object):
 
 
 class MainDisplay(Frame):
+    SPECIAL_OCCUPATIONS = ['gatherer', 'builder']
+
     def __init__(self, screen, display_handler):
         super(MainDisplay, self).__init__(screen,
                                           screen.height,
@@ -46,8 +48,24 @@ class MainDisplay(Frame):
         self._game_data: GameData = None
 
         # Create the resources view layout...
-        status_layout = Layout([1, 1], fill_frame=False)
+        self._create_resources_layout()
 
+        # Create a layout for buildings
+        self._create_building_layout()
+
+        # Create a layout for research
+        self._create_research_layout()
+
+        # Create a layout for help text at the bottom
+        self._create_help_layout()
+
+        self.fix()
+
+        # Colours
+        self.palette["disabled"] = self.palette["field"]
+
+    def _create_resources_layout(self):
+        status_layout = Layout([1, 1], fill_frame=False)
         # ...the resources list
         self._resources_list = MultiColumnListBox(
             10,  # Height
@@ -56,22 +74,30 @@ class MainDisplay(Frame):
         )
         self._resources_list.disabled = True
 
+        # ...then the 2 special occupations
+        self._special_occupation_list = MultiColumnListBox(
+            2,  # Height
+            ["<12", ">10"],
+            [],
+        )
+        self._special_occupation_list.disabled = True
+
         # ...then the occupation list
         self._occupation_list = MultiColumnListBox(
             10,  # Height
             ["<12", ">10"],
             [],
         )
-
         self.add_layout(status_layout)
         status_layout.add_widget(Label("Resources"), column=0)
         status_layout.add_widget(self._resources_list, column=0)
         status_layout.add_widget(Label("Workers"), column=1)
+        status_layout.add_widget(self._special_occupation_list, column=1)
+        status_layout.add_widget(Divider(), column=1)
         status_layout.add_widget(self._occupation_list, column=1)
 
-        # Create a layout for buildings
+    def _create_building_layout(self):
         buildings_layout = Layout([1, 1], fill_frame=False)
-
         # ...list of buildings
         self._buildings_list = MultiColumnListBox(
             10,  # Height
@@ -79,7 +105,6 @@ class MainDisplay(Frame):
             [],
         )
         self._buildings_list.disabled = True
-
         # ...list of current construction
         self._under_construction = MultiColumnListBox(
             10,  # Height
@@ -87,7 +112,6 @@ class MainDisplay(Frame):
             [],
             titles=["Building", "Builders", "Progress"],
         )
-
         self.add_layout(buildings_layout)
         buildings_layout.add_widget(Divider(), column=0)
         buildings_layout.add_widget(Label("Buildings"), column=0)
@@ -96,38 +120,30 @@ class MainDisplay(Frame):
         buildings_layout.add_widget(Label("Under Construction"), column=1)
         buildings_layout.add_widget(self._under_construction, column=1)
 
-        # Create a layout for research
+    def _create_research_layout(self):
         research_layout = Layout([1, 1], fill_frame=False)
-
         # ...list of available research
         self._available_research = ListBox(
             10,
             [],
             on_change=self._on_research_selected,
         )
-
         self.add_layout(research_layout)
         research_layout.add_widget(Divider(), column=0)
         research_layout.add_widget(Label("Available Research"), column=0)
         research_layout.add_widget(self._available_research, column=0)
         research_layout.add_widget(Divider(), column=1)
 
-        # Create a layout for help text at the bottom
+    def _create_help_layout(self):
         help_layout = Layout([1], fill_frame=True)
         self.add_layout(help_layout)
         help_layout.add_widget(Divider())
-
         # ...the help widget itself
         self._help = TextBox(height=3, label="Help: ", as_string=True)
         self._help.value = "TEST"
         self._help.disabled = True
         help_layout.add_widget(self._help)
         help_layout.add_widget(Divider())
-
-        self.fix()
-
-        # Colours
-        self.palette["disabled"] = self.palette["field"]
 
     def _update(self, frame_no):
         # Refresh the list view if needed
@@ -147,11 +163,20 @@ class MainDisplay(Frame):
                 ]
                 self._resources_list.options = resource_data
 
+                # Special occupations list
+                special_occupation_data = [
+                    ([occupation, "{}".format(number)], occupation)
+                    for occupation, number in self._game_data.visible_occupations.items()
+                    if occupation in self.SPECIAL_OCCUPATIONS
+                ]
+                self._special_occupation_list.options = special_occupation_data
+
                 # Occupation list
                 last_selection = self._occupation_list.value
                 occupation_data = [
                     ([occupation, "{}".format(number)], occupation)
                     for occupation, number in self._game_data.visible_occupations.items()
+                    if occupation not in self.SPECIAL_OCCUPATIONS
                 ]
                 self._occupation_list.options = occupation_data
                 self._occupation_list.value = last_selection
