@@ -1,6 +1,7 @@
 import logging
 from typing import List, Dict
 
+import re
 from thespian.actors import Actor, ActorExitRequest
 
 from cliciv.building_manager import BuildingManager
@@ -66,9 +67,10 @@ class WorkerManager(Actor):
                 notify_change = True
         elif isinstance(msg, BuilderAssignRequest):
             if self._transition_ok(msg, 'builder'):
-                self._move_n_workers('builder', msg.increment)
-                self._assign_builders(msg.building_id, msg.increment)
-                notify_change = True
+                if self._builders_allowed(msg.building_id, msg.increment):
+                    self._move_n_workers('builder', msg.increment)
+                    self._assign_builders(msg.building_id, msg.increment)
+                    notify_change = True
         else:
             logger.error("Ignoring unexpected message: {}".format(msg))
 
@@ -111,7 +113,6 @@ class WorkerManager(Actor):
 
         # Register for tech updates
         self.send(self.technology_manager, RegisterForUpdates())
-
 
         # Start Workers
         self.start_workers()
@@ -191,6 +192,21 @@ class WorkerManager(Actor):
         logger.info("self.buildings: {}".format(self.buildings))
         new_num = len(self.buildings[building_id])
         self.send(self.building_manager, BuildersAssigned(building_id, new_num))
+
+    def _builders_allowed(self, building_id, increment):
+        building_info = self._building_info_from_id(building_id)
+        max_builders = building_info.get('max_builders', 1)
+        current_builders = len(self.buildings.get(building_id, []))
+        allowed = current_builders + increment <= max_builders
+        if not allowed:
+            logger.debug("Request for {} more builders on building {}, but max is {}".format(
+                increment, building_id, max_builders
+            ))
+        return allowed
+
+    def _building_info_from_id(self, building_id):
+        building_type = re.sub('(.*?)\d*','\\1', building_id)
+        return self.buildings_data[building_type]
 
 
 class WorkerState(object):
