@@ -8,6 +8,7 @@ from cliciv.messages import WorkersNewState, TechnologyNewState, Start, Register
     WorkerProfile, InitialState, BuildTarget, BuilderAssignRequest, BuildersAssigned
 from cliciv.resource_manager import ResourceManager
 from cliciv.technology_manager import TechnologyManager, TechnologyState
+from cliciv.utils.data import dict_from_data
 from cliciv.worker import WorkerFactory, Profiles
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ class WorkerManager(Actor):
         self.workers: Dict[str, List[Actor]] = {}
         self.building_manager: Actor = None
         self.buildings = {}
+        self.buildings_data = dict_from_data('buildings')
         super(WorkerManager, self).__init__()
 
     def receiveMessage(self, msg, sender: str):
@@ -59,38 +61,12 @@ class WorkerManager(Actor):
                 logger.debug("Ignoring message {} to change workers into builders".format(msg))
                 return
 
-            new_gatherer_count = len(self.workers.get('gatherer', [])) - msg.increment
-            new_type_count = len(self.workers.get(msg.worker_type, [])) + msg.increment
-            if new_gatherer_count >= 0 and new_type_count >= 0:
-                # The transition seems reasonable
-                if msg.increment > 0:
-                    # Move workers from gathering to a new job
-                    for _ in range(msg.increment):
-                        worker = self.workers['gatherer'].pop()
-                        self._assign_worker(worker, msg.worker_type)
-                else:
-                    # Move workers back to gathering
-                    for _ in range(-msg.increment):
-                        worker = self.workers[msg.worker_type].pop()
-                        self._assign_worker(worker, 'gatherer')
-
+            if self._transition_ok(msg, msg.worker_type):
+                self._move_n_workers(msg.worker_type, msg.increment)
                 notify_change = True
         elif isinstance(msg, BuilderAssignRequest):
-            new_gatherer_count = len(self.workers.get('gatherer', [])) - msg.increment
-            new_builder_count = len(self.workers.get('builder', [])) + msg.increment
-            if new_gatherer_count >= 0 and new_builder_count >= 0:
-                # The transition seems reasonable
-                if msg.increment > 0:
-                    # Move workers from gathering to a new job
-                    for _ in range(msg.increment):
-                        worker = self.workers['gatherer'].pop()
-                        self._assign_worker(worker, 'builder')
-                else:
-                    # Move workers back to gathering
-                    for _ in range(-msg.increment):
-                        worker = self.workers['builder'].pop()
-                        self._assign_worker(worker, 'gatherer')
-
+            if self._transition_ok(msg, 'builder'):
+                self._move_n_workers('builder', msg.increment)
                 self._assign_builders(msg.building_id, msg.increment)
                 notify_change = True
         else:
@@ -101,6 +77,28 @@ class WorkerManager(Actor):
         if notify_change:
             for actor in self.registered:
                 self.send(actor, WorkersNewState(self.worker_state))
+
+    def _move_n_workers(self, worker_type, increment):
+        if increment > 0:
+            from_type = 'gatherer'
+            to_type = worker_type
+        else:
+            from_type = worker_type
+            to_type = 'gatherer'
+
+        for _ in range(abs(increment)):
+            worker = self.workers[from_type].pop()
+            self._assign_worker(worker, to_type)
+
+    def _transition_ok(self, msg, worker_type):
+        new_gatherer_count = len(self.workers.get('gatherer', [])) - msg.increment
+        new_type_count = len(self.workers.get(worker_type, [])) + msg.increment
+        transition_ok = new_gatherer_count >= 0 and new_type_count >= 0
+        if not transition_ok:
+            logger.info("Rejected transition: increment {} would result in {} gatherers and {} {}s".format(
+                msg.increment, new_gatherer_count, new_type_count, worker_type
+            ))
+        return transition_ok
 
     def start(self):
         self.resources_manager = self.createActor(ResourceManager, globalName="resource_manager")
@@ -113,6 +111,7 @@ class WorkerManager(Actor):
 
         # Register for tech updates
         self.send(self.technology_manager, RegisterForUpdates())
+
 
         # Start Workers
         self.start_workers()
@@ -152,8 +151,6 @@ class WorkerManager(Actor):
                         self.send(worker, WorkerProfile(Profiles[occupation]))
 
     def _assign_builders(self, building_id, increment):
-        # TODO - don't allow more workers than allowed...
-
         if increment == 0:
             # Already have the correct number of builders
             return

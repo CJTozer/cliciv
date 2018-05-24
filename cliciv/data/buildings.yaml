@@ -1,6 +1,6 @@
 hut:
   name: hut
-  building_time: 10
+  building_required: 90
   max_builders: 3
   needs:
     wood: 50
