@@ -24,5 +24,7 @@ hunter:
     hides: 0.25
 
 builder:
+  needs:
+    food: 1
   produces:
     building-increment: 1

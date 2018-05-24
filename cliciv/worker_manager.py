@@ -217,4 +217,3 @@ class WorkerState(object):
         self.occupations = {}
         for worker_type, workers in workers.items():
             self.occupations[worker_type] = len(workers)
-
